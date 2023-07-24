@@ -25,3 +25,32 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+/* make an animation for form to fade out */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* make an animation for form to fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* when form has class of fade-out, apply fadeOut animation */
+.fade-out {
+  animation: fadeOut .5s ease;
+}
+
+.fade-in {
+  animation: fadeIn .5s ease;
+}

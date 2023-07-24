@@ -52,7 +52,7 @@ export default async function handler(
             })
 
         } catch (e) {
-            return res.status(500).json({message: "error on submit " + e.message })
+            return res.status(500).json({message: "error on submit " + e })
         }
 
 

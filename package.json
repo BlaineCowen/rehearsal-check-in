@@ -20,7 +20,7 @@
     "gapi": "^0.0.3",
     "googleapis": "^118.0.0",
     "googleauth": "^3.0.2",
-    "next": "^13.4.8-canary.11",
+    "next": "^13.4.12",
     "postcss": "8.4.24",
     "react": "18.2.0",
     "react-dom": "18.2.0",

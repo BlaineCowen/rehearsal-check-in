@@ -43,25 +43,65 @@ export default function Home() {
 
   // refresh the page and get ready for the next ID number to be entered
   setId("");
+  // give form and submit class fadeOut
+  // remove hidden from submit
+  document.getElementById('form')!.classList.add('fade-out');
+
+  document.getElementById('submit')!.classList.add('fade-in');
+  document.getElementById('form')!.classList.add('opacity-0');
+
+  document.getElementById('submit')!.classList.remove('opacity-0');
+
+  setTimeout(function(){
+    document.getElementById('form')!.classList.add('opacity-0');
+
+    document.getElementById('submit')!.classList.remove('opacity-0');
+
+    document.getElementById('submit')!.classList.remove('fade-in');
+    document.getElementById('form')!.classList.remove('fade-out');
+    document.getElementById('form')!.classList.add('fade-in');
+    document.getElementById('submit')!.classList.add('fade-out');
 
   }
+  , 500);
+
+  setTimeout(function(){
+    document.getElementById('form')!.classList.remove('opacity-0');
+    document.getElementById('submit')!.classList.add('opacity-0');
+    document.getElementById('submit')!.classList.remove('fade-out');
+    document.getElementById('form')!.classList.remove('fade-in');
+    document.getElementById('submit')!.classList.remove('fade-in');
+    document.getElementById('form')!.classList.remove('fade-out');
+  }, 1000);
+
   
 
 
+}
+
+
   return (
-    <main className="min-h-screen items-center justify-between p-24">
+    <main className="min-h-screen items-center relative justify-between p-24">
 
       {/* make a header that says "SOHO CHOIR CHECK IN" */}
-      <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">SOHO CHOIR CHECK IN</h1>
       
-        <div className='w-full '>
-          <form onSubmit={handleSubmit} className='flex w-full'>
-            {/* make a in input box with placeholder "Type/Scan ID Number" */}
-            <input onChange={e => setId(e.target.value)} value={id}  className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100" placeholder="Type/Scan ID Number" />
-            {/* to the right of the input box, place a button that says "Submit" */}
-            <button type='submit' className="w-1/5 h-12 px-4 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
-          </form>
-        </div>
+      <div className='relative pb-10'>
+        <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">SOHO CHOIR CHECK IN</h1>
+          <div className=" absolute opacity-0 w-full justify-center text-center" id='submit'>
+            <h1 className="text-6xl w-full font-bold text-center justify-center pb-10 font-sans">Submitted</h1>
+          </div>
+          <div className='w-full absolute pt-3' id='form'>
+            <form onSubmit={handleSubmit} className='flex w-full'>
+              {/* make a in input box with placeholder "Type/Scan ID Number" */}
+              <input onChange={e => setId(e.target.value)} value={id}  className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100" placeholder="Type/Scan ID Number" />
+              {/* to the right of the input box, place a button that says "Submit" */}
+              <button type='submit' className="w-1/5 h-12 px-4 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
+            </form>
+          </div>
+      </div>
+
+
+        
 
     </main>
   )
