@@ -5,6 +5,8 @@ import { google } from "googleapis";
 import { GoogleAuth } from "google-auth-library";
 import { Console, log } from 'console';
 
+import Image from 'next/image'
+
 
 export default function Home() {
   const [id, setId] = useState("");
@@ -17,6 +19,11 @@ export default function Home() {
   
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    
+
+
+
+
     event.preventDefault();
     console.log(id);
   // get the current time and date
@@ -85,21 +92,42 @@ export default function Home() {
 
       {/* make a header that says "SOHO CHOIR CHECK IN" */}
       
-      <div className='relative pb-10'>
-        <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">SOHO CHOIR CHECK IN</h1>
-          <div className=" absolute opacity-0 w-full justify-center text-center" id='submit'>
-            <h1 className="text-6xl w-full font-bold text-center justify-center pb-10 font-sans">Submitted</h1>
-          </div>
-          <div className='w-full absolute pt-3' id='form'>
-            <form onSubmit={handleSubmit} className='flex w-full'>
-              {/* make a in input box with placeholder "Type/Scan ID Number" */}
-              <input onChange={e => setId(e.target.value)} value={id}  className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100" placeholder="Type/Scan ID Number" />
-              {/* to the right of the input box, place a button that says "Submit" */}
-              <button type='submit' className="w-1/5 h-12 px-4 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
-            </form>
-          </div>
-      </div>
+      <div className='relative pb-10 h-fit mb-10'>
 
+
+            <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">SOHO CHOIR CHECK IN</h1>
+            <div className=" absolute opacity-0 w-full h-full justify-center text-center" id='submit'>
+              <h1 className="text-6xl w-full font-bold text-center justify-center pb-10 font-sans">Submitted</h1>
+            </div>
+            <div className='w-full absolute pt-3' id='form'>
+              <form onSubmit={handleSubmit} className='flex w-full'>
+                {/* make a in input box with placeholder "Type/Scan ID Number" */}
+                <input onChange={e => setId(e.target.value)} value={id}  className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100" placeholder="Type/Scan ID Number" />
+                {/* to the right of the input box, place a button that says "Submit" */}
+                <button type='submit' className="w-1/5 h-12 px-4 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
+              </form>
+            </div>
+            {/* add image with logo.png */}
+
+        </div>
+
+              <div className='w-full flex h-full'>
+<div className=' flex w-full h-60'>
+<div className='relative w-full h-full'>
+  
+  <Image fill src="/logo.png" alt="logo" style={
+    {
+      objectFit: 'contain',
+      maxHeight: '500px',
+
+    }
+  }/>
+</div>
+</div>
+          </div>  
+
+
+ 
 
         
 
