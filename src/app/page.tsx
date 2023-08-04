@@ -19,7 +19,16 @@ export default function Home() {
   
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    
+
+    document.getElementById('form')!.classList.add('fade-out');
+
+    document.getElementById('submit')!.classList.add('fade-in');
+    document.getElementById('form')!.classList.add('opacity-0');
+  
+    document.getElementById('submit')!.classList.remove('opacity-0');
+  
+
+
 
 
 
@@ -35,30 +44,7 @@ export default function Home() {
     date
   }
   
-
-  const response = await fetch('api/submit', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(form),
-    
-  })
-  const content = await response.json()
-  
-  console.log(content)
-
-  // refresh the page and get ready for the next ID number to be entered
   setId("");
-  // give form and submit class fadeOut
-  // remove hidden from submit
-  document.getElementById('form')!.classList.add('fade-out');
-
-  document.getElementById('submit')!.classList.add('fade-in');
-  document.getElementById('form')!.classList.add('opacity-0');
-
-  document.getElementById('submit')!.classList.remove('opacity-0');
-
   setTimeout(function(){
     document.getElementById('form')!.classList.add('opacity-0');
 
@@ -79,7 +65,29 @@ export default function Home() {
     document.getElementById('form')!.classList.remove('fade-in');
     document.getElementById('submit')!.classList.remove('fade-in');
     document.getElementById('form')!.classList.remove('fade-out');
-  }, 1000);
+  }, 1000);  
+
+  const response = await fetch('api/submit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(form),
+    
+  })
+
+
+  
+  // refresh the page and get ready for the next ID number to be entered
+
+  // give form and submit class fadeOut
+  // remove hidden from submit
+  
+  const content = await response.json()
+  
+  console.log(content)
+
+
 
   
 
@@ -104,7 +112,7 @@ export default function Home() {
                 {/* make a in input box with placeholder "Type/Scan ID Number" */}
                 <input onChange={e => setId(e.target.value)} value={id}  className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100" placeholder="Type/Scan ID Number" />
                 {/* to the right of the input box, place a button that says "Submit" */}
-                <button type='submit' className="w-1/5 h-12 px-4 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
+                <button type='submit' className="w-1/5 h-12 px-4 text-l font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
               </form>
             </div>
             {/* add image with logo.png */}
