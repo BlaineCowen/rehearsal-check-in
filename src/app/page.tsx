@@ -12,13 +12,17 @@ export default function Home() {
   const [id, setId] = useState("");
   // get the current time and date
   const date = new Date();
+  const [student_name, setStudent_name] = useState("");
 
   function change(e: React.ChangeEvent<HTMLInputElement>) {
     setId(e.currentTarget.value);
   }
   
+  
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
+    
 
     document.getElementById('form')!.classList.add('fade-out');
 
@@ -115,7 +119,11 @@ export default function Home() {
                 <button type='submit' className="w-1/5 h-12 px-4 text-l font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100">Submit</button>
               </form>
             </div>
-            {/* add image with logo.png */}
+            {/* add a check box that says "Red Rhythm?" */}
+            <div className='flex w-full justify-center pt-16'>
+              <h1 className="text-l font-bold text-center inline justify-center pb-10 font-sans">Red Rhythm?</h1>
+              <input type="checkbox" className="w-1/12 h-6 px-4 text-sm font-semibold rounded-lg shadow-lg inline-block dark:bg-neutral-800 dark:text-neutral-100" />
+            </div>
 
         </div>
 
