@@ -79,7 +79,10 @@ export default function Home() {
     body: JSON.stringify(form),
     
   })
-
+  if (!response.ok) {
+    console.error('API response was not ok', response);
+    return;
+  }
 
   
   // refresh the page and get ready for the next ID number to be entered
@@ -90,11 +93,6 @@ export default function Home() {
   const content = await response.json()
   
   console.log(content)
-
-
-
-  
-
 
 }
 
@@ -129,6 +127,8 @@ export default function Home() {
 
               <div className='w-full flex h-full'>
 <div className=' flex w-full h-60'>
+  {/* add div */}
+  
 <div className='relative w-full h-full'>
   
   <Image fill src="/logo.png" alt="logo" style={

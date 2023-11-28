@@ -22,5 +22,8 @@ import numpy as np
 
 # make a tuple for 1st, 2nd, 5th, 6th, and 7th periods
 # the first number should be the start time, the 2nd the end time
+# time should be in datetime format
 
-first = 
+first_per = [datetime.time(5), datetime.time(8, 15)]
+second_per = [datetime.time(8, 00), datetime.time(9, 15)]
+fourth_per = [datetime.time(11, 30), datetime.time(13)]
