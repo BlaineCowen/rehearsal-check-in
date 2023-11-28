@@ -68,10 +68,6 @@ export default async function handler(
                     values: [[body.id, body.date]],
                 }
             });
-
-
-
-            // your code here
         } catch (error) {
             console.error(error)
             // handle error

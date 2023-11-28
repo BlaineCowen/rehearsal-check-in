@@ -6,6 +6,7 @@ import { GoogleAuth } from "google-auth-library";
 import { Console, log } from 'console';
 
 import Image from 'next/image'
+import Checkbox from '@/components/Checkbox';
 
 
 export default function Home() {
@@ -17,8 +18,8 @@ export default function Home() {
   function change(e: React.ChangeEvent<HTMLInputElement>) {
     setId(e.currentTarget.value);
   }
-  
-  
+
+
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 
@@ -106,8 +107,8 @@ export default function Home() {
 
 
             <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">SOHO CHOIR CHECK IN</h1>
-            <div className=" absolute opacity-0 w-full h-full justify-center text-center" id='submit'>
-              <h1 className="text-6xl w-full font-bold text-center justify-center pb-10 font-sans">Submitted</h1>
+            <div className=" absolute opacity-0 w-full h-2 justify-center text-center" id='submit'>
+              <h1 className="text-6xl h-2 w-full font-bold text-center justify-center pb-10 font-sans">Submitted</h1>
             </div>
             <div className='w-full absolute pt-3' id='form'>
               <form onSubmit={handleSubmit} className='flex w-full'>
@@ -118,10 +119,7 @@ export default function Home() {
               </form>
             </div>
             {/* add a check box that says "Red Rhythm?" */}
-            <div className='flex w-full justify-center pt-16'>
-              <h1 className="text-l font-bold text-center inline justify-center pb-10 font-sans">Red Rhythm?</h1>
-              <input type="checkbox" className="w-1/12 h-6 px-4 text-sm font-semibold rounded-lg shadow-lg inline-block dark:bg-neutral-800 dark:text-neutral-100" />
-            </div>
+            <Checkbox />
 
         </div>
 
