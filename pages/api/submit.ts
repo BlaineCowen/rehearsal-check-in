@@ -50,12 +50,30 @@ export default async function handler(
                 },
 
                 scopes: [
+
+                    'https://www.googleapis.com/auth/spreadsheets',
+                    'https://www.googleapis.com/auth/drive',
+                    'https://www.googleapis.com/auth/drive.file'
+
                 // your scopes here
                 ],
             })
 
+            const sheets = google.sheets({ version: 'v4', auth })
+            const response = await sheets.spreadsheets.values.append({
+                spreadsheetId: process.env.SHEET_ID,
+                range: 'Sheet1!A1:B1',
+                valueInputOption: 'USER_ENTERED',
+                requestBody: {
+                    values: [[body.id, body.date]],
+                }
+            });
+
+
+
             // your code here
         } catch (error) {
+            console.error(error)
             // handle error
         }
     }
