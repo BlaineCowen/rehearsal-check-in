@@ -42,7 +42,7 @@ export default async function handler(
         
         console.log("body message is " + body.id);
         console.log("body message is " + body.date);
-        console.log("body message is " + body.type);
+        console.log("body message is " + body.attendance_type);
 
         try {
 
