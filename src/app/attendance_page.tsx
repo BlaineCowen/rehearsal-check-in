@@ -107,20 +107,19 @@ export default function Attendance_Page() {
             <input
               onChange={(e) => setId(e.target.value)}
               value={id}
-              className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100"
+              className="w-4/5 h-12 px-4 mr-2 text-2xl font-semibold rounded-lg shadow-lg bg-neutral-800 text-neutral-100"
               placeholder="Type/Scan ID Number"
             />
             {/* to the right of the input box, place a button that says "Submit" */}
             <button
               type="submit"
-              className="w-1/5 h-12 px-4 text-l font-semibold rounded-lg shadow-lg dark:bg-neutral-800 dark:text-neutral-100"
+              className="w-1/5 h-12 px-4 text-l font-semibold rounded-lg shadow-lg bg-neutral-800 text-neutral-100"
             >
               Submit
             </button>
           </form>
         </div>
         {/* add a check box that says "Red Rhythm?" */}
-        <Checkbox />
       </div>
 
       <div className="w-full flex h-full">
