@@ -24,6 +24,7 @@ function runMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) 
 type SheetForm = { 
     id: string
     date: string
+    attendance_type: string
 }
 
 export default async function handler(
@@ -40,8 +41,11 @@ export default async function handler(
         const body = req.body as SheetForm
         
         console.log("body message is " + body.id);
+        console.log("body message is " + body.date);
+        console.log("body message is " + body.type);
 
         try {
+
             //prepare auth
             const auth = new google.auth.GoogleAuth({
                 credentials: {
@@ -62,12 +66,13 @@ export default async function handler(
             const sheets = google.sheets({ version: 'v4', auth })
             const response = await sheets.spreadsheets.values.append({
                 spreadsheetId: process.env.SHEET_ID,
-                range: 'Sheet1!A1:B1',
+                range: 'Sheet1!A1:C1',
                 valueInputOption: 'USER_ENTERED',
                 requestBody: {
-                    values: [[body.id, body.date]],
+                    values: [[body.id, body.date, body.attendance_type]],
                 }
             });
+            console.log(response.data);
         } catch (error) {
             console.error(error)
             // handle error
