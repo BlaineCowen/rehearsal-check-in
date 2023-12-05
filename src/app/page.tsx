@@ -6,9 +6,6 @@ import { GoogleAuth } from "google-auth-library";
 
 import Image from "next/image";
 import Checkbox from "@/components/Checkbox";
-import Daily_Page from "./attendance_page";
-import RR_Page from "./RR_page";
-import Rehearsal_Page from "./rehearsal_page";
 import { Toolbar } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -49,7 +46,7 @@ export default function Home() {
             Red Rhythm
           </Button>
         </Toolbar>
-        <Attendance_Page />
+        <Attendance_Page currentPage={currentPage}/>
       </body>
     </html>
   );
