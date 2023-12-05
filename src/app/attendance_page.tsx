@@ -165,8 +165,8 @@ console.log(toTitleCase(myString)); // Outputs: "Hello World"
       {/* make a header that says "SOHO CHOIR CHECK IN" */}
 
       <div className="relative pb-10 h-fit mb-10">
-        <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">
-          SOHO CHOIR {currentPage} CHECK IN
+        <h1 className="text-6xl flex w-full font-bold text-center capitalize justify-center pb-10 font-sans">
+          SOHO CHOIR {currentPage.toUpperCase()} CHECK IN
         </h1>
         <div
           className=" absolute opacity-0 w-full h-2 justify-center text-center"
