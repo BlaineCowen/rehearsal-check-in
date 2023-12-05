@@ -11,24 +11,49 @@ import Checkbox from "@/components/Checkbox";
 export default function Attendance_Page() {
   const [attendance_type, setAttendance_type] = useState("Daily");
   const [id, setId] = useState("");
-  // get the current time and date
-  const date = new Date();
-  const [student_name, setStudent_name] = useState("");
+  // const [student_name, setStudent_name] = useState("");
+  const [nameData, setNameData] = useState<any[]>([]);
 
-  function change(e: React.ChangeEvent<HTMLInputElement>) {
-    setId(e.currentTarget.value);
-  }
+  React.useEffect(() => {
+    const fetchData = async () => {
+      let data = sessionStorage.getItem("data");
+      if (!data) {
+        try {
+          const response = await fetch("api/retrieve_info");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          data = await response.json();
+          sessionStorage.setItem("data", JSON.stringify(data));
+          console.log("data", data);
+        } catch (error) {
+          console.error("An error occurred while fetching the data.", error);
+        }
+      } else {
+        data = JSON.parse(data);
+      }
+      if (Array.isArray(data)) {
+        setNameData(data);
+        console.log("data", data);
+        console.log("nameData", nameData);
+      } else {
+        setNameData([]);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    console.log(nameData);
+
     setAttendance_type("Daily");
-
+    console.log(nameData);
+    setAttendance_type("Daily");
     document.getElementById("form")!.classList.add("fade-out");
-
     document.getElementById("submit")!.classList.add("fade-in");
     document.getElementById("form")!.classList.add("opacity-0");
-
     document.getElementById("submit")!.classList.remove("opacity-0");
-
     event.preventDefault();
     console.log(id);
     // get the current time and date
@@ -39,8 +64,6 @@ export default function Attendance_Page() {
       date,
       attendance_type,
     };
-
-    console.log(form);
 
     setId("");
     setTimeout(function () {

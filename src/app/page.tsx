@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { google } from "googleapis";
 import { GoogleAuth } from "google-auth-library";
-import { Console, log } from "console";
 
 import Image from "next/image";
 import Checkbox from "@/components/Checkbox";
