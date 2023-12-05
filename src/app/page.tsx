@@ -15,14 +15,14 @@ import Button from "@mui/material/Button";
 import Attendance_Page from "./attendance_page";
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState<JSX.Element | null>(
-    <Attendance_Page />
-  );
+  const [currentPage, setCurrentPage] = useState<string>("Attendance")
+
   // render Daily_Page
 
-  const handleButtonClick = (pageComponent: JSX.Element) => {
-    setCurrentPage(pageComponent);
+  const handleButtonClick = (pageName: string) => {
+    setCurrentPage(pageName);
   };
+
   return (
     <html lang="en">
       <body>
@@ -32,24 +32,24 @@ export default function Home() {
           </Typography>
           <Button
             color="inherit"
-            onClick={() => handleButtonClick(<Rehearsal_Page />)}
+            onClick={() => handleButtonClick("Rehearsal")}
           >
             Rehearsal
           </Button>
           <Button
             color="inherit"
-            onClick={() => handleButtonClick(<Attendance_Page />)}
+            onClick={() => handleButtonClick("Attendance")}
           >
             Attendance
           </Button>
           <Button
             color="inherit"
-            onClick={() => handleButtonClick(<RR_Page />)}
+            onClick={() => handleButtonClick("Red Rhythm")}
           >
             Red Rhythm
           </Button>
         </Toolbar>
-        {currentPage}
+        <Attendance_Page />
       </body>
     </html>
   );

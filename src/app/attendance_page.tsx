@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { google } from "googleapis";
 import { GoogleAuth } from "google-auth-library";
 import { Console, log } from "console";
@@ -8,13 +8,23 @@ import { Console, log } from "console";
 import Image from "next/image";
 import Checkbox from "@/components/Checkbox";
 
-export default function Attendance_Page() {
+interface Attendance_PageProps {
+  currentPage: string;
+}
+
+
+export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
   const [attendance_type, setAttendance_type] = useState("Daily");
   const [id, setId] = useState("");
   // const [student_name, setStudent_name] = useState("");
   const [nameData, setNameData] = useState<any[]>([]);
+  const [userName, setUserName] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  
 
   React.useEffect(() => {
+
     const fetchData = async () => {
       let data = sessionStorage.getItem("data");
       if (!data) {
@@ -26,6 +36,7 @@ export default function Attendance_Page() {
           data = await response.json();
           sessionStorage.setItem("data", JSON.stringify(data));
           console.log("data", data);
+
         } catch (error) {
           console.error("An error occurred while fetching the data.", error);
         }
@@ -35,7 +46,6 @@ export default function Attendance_Page() {
       if (Array.isArray(data)) {
         setNameData(data);
         console.log("data", data);
-        console.log("nameData", nameData);
       } else {
         setNameData([]);
       }
@@ -44,18 +54,62 @@ export default function Attendance_Page() {
     fetchData();
   }, []);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    console.log(nameData);
 
-    setAttendance_type("Daily");
-    console.log(nameData);
-    setAttendance_type("Daily");
+    function toTitleCase(str: string) {
+      return str.split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+  }
+
+  function findName(id: string) {
+    for (let i = 0; i < nameData.length; i++) {
+      if (nameData[i][7] === id || nameData[i][8] === id) {
+        return toTitleCase(nameData[i][3]);
+      }
+    }
+    return "No Name Found";
+  }
+
+let myString = "hello world";
+console.log(toTitleCase(myString)); // Outputs: "Hello World"
+
+  useEffect(() => {
+    const savedUserName = localStorage.getItem('userName');
+    if (savedUserName) {
+      setUserName(savedUserName);
+    }
+  }, []);
+
+  // When userName changes, save it to localStorage
+  useEffect(() => {
+    localStorage.setItem('userName', userName);
+  }, [userName]);
+
+
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
+    // find where id is in array[i][7] or array[i][8]
+    // if array[i][7] or 8 = id, then 3 is name
+
+    setUserName(findName(id));
+    if (findName(id) === "No Name Found") {
+      setSuccessMessage("No Name Found");
+    } else {
+      setSuccessMessage("Success! ");
+    } 
+
+    console.log("name data is ", userName);
+
+
+    
+    // find the index of the id in the array
+    setAttendance_type(currentPage);
     document.getElementById("form")!.classList.add("fade-out");
     document.getElementById("submit")!.classList.add("fade-in");
     document.getElementById("form")!.classList.add("opacity-0");
     document.getElementById("submit")!.classList.remove("opacity-0");
     event.preventDefault();
-    console.log(id);
     // get the current time and date
     const date = new Date();
 
@@ -104,8 +158,6 @@ export default function Attendance_Page() {
     // remove hidden from submit
 
     const content = await response.json();
-
-    console.log(content);
   };
 
   return (
@@ -114,14 +166,14 @@ export default function Attendance_Page() {
 
       <div className="relative pb-10 h-fit mb-10">
         <h1 className="text-6xl flex w-full font-bold text-center justify-center pb-10 font-sans">
-          SOHO CHOIR ATTENDANCE CHECK IN
+          SOHO CHOIR {currentPage} CHECK IN
         </h1>
         <div
           className=" absolute opacity-0 w-full h-2 justify-center text-center"
           id="submit"
         >
           <h1 className="text-6xl h-2 w-full font-bold text-center justify-center pb-10 font-sans">
-            Submitted
+            {successMessage} {userName}
           </h1>
         </div>
         <div className="w-full absolute pt-3" id="form">
