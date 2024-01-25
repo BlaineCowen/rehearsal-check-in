@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'names!A2:L1000',
+            range: 'names!A1:L1000',
         })
 
         res.status(200).json(response.data.values)

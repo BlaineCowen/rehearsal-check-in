@@ -45,6 +45,9 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
       }
       if (Array.isArray(data)) {
         setNameData(data);
+        // name data needs to be a json object with the headers as keys
+        console.log("data", data);
+
         console.log("data", data);
       } else {
         setNameData([]);
