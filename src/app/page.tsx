@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { google } from "googleapis";
 import { GoogleAuth } from "google-auth-library";
+import Link from "next/link";
 
 import Image from "next/image";
 import Checkbox from "@/components/Checkbox";
@@ -12,7 +13,7 @@ import Button from "@mui/material/Button";
 import Attendance_Page from "./attendance_page";
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState<string>("Attendance")
+  const [currentPage, setCurrentPage] = useState<string>("Attendance");
 
   // render Daily_Page
 
@@ -45,8 +46,11 @@ export default function Home() {
           >
             Red Rhythm
           </Button>
+          <Button color="inherit">
+            <Link href="app/student_attendance">Student Attendance</Link>
+          </Button>
         </Toolbar>
-        <Attendance_Page currentPage={currentPage}/>
+        <Attendance_Page currentPage={currentPage} />
       </body>
     </html>
   );

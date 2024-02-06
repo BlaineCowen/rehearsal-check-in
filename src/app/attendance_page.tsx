@@ -12,7 +12,6 @@ interface Attendance_PageProps {
   currentPage: string;
 }
 
-
 export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
   const [attendance_type, setAttendance_type] = useState("Daily");
   const [id, setId] = useState("");
@@ -21,10 +20,7 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
   const [userName, setUserName] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  
-
   React.useEffect(() => {
-
     const fetchData = async () => {
       let data = sessionStorage.getItem("data");
       if (!data) {
@@ -35,8 +31,6 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
           }
           data = await response.json();
           sessionStorage.setItem("data", JSON.stringify(data));
-          console.log("data", data);
-
         } catch (error) {
           console.error("An error occurred while fetching the data.", error);
         }
@@ -47,8 +41,6 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
         setNameData(data);
         // name data needs to be a json object with the headers as keys
         console.log("data", data);
-
-        console.log("data", data);
       } else {
         setNameData([]);
       }
@@ -57,27 +49,29 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
     fetchData();
   }, []);
 
-
-    function toTitleCase(str: string) {
-      return str.split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ');
+  function toTitleCase(str: string) {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   }
 
-  function findName(id: string) {
-    for (let i = 0; i < nameData.length; i++) {
-      if (nameData[i][7] === id || nameData[i][8] === id) {
-        return toTitleCase(nameData[i][3]);
+  function findName(data: any[], id: string) {
+    // data = nameData;
+
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].Student_ID === id || data[i].Id_formated === id) {
+        console.log("data[i].First_Last", data[i].First_Last);
+        setSuccessMessage("Success!");
+        return data[i] ? toTitleCase(data[i].First_Last) : "No Name Found";
       }
     }
-    return "No Name Found";
+    setSuccessMessage("No Name Found for ID ");
+    return null;
   }
 
-let myString = "hello world";
-console.log(toTitleCase(myString)); // Outputs: "Hello World"
-
   useEffect(() => {
-    const savedUserName = localStorage.getItem('userName');
+    const savedUserName = localStorage.getItem("userName");
     if (savedUserName) {
       setUserName(savedUserName);
     }
@@ -85,33 +79,14 @@ console.log(toTitleCase(myString)); // Outputs: "Hello World"
 
   // When userName changes, save it to localStorage
   useEffect(() => {
-    localStorage.setItem('userName', userName);
+    localStorage.setItem("userName", userName);
   }, [userName]);
 
-
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-
     // find where id is in array[i][7] or array[i][8]
     // if array[i][7] or 8 = id, then 3 is name
 
-    setUserName(findName(id));
-    if (findName(id) === "No Name Found") {
-      setSuccessMessage("No Name Found");
-    } else {
-      setSuccessMessage("Success! ");
-    } 
-
-    console.log("name data is ", userName);
-
-
-    
-    // find the index of the id in the array
-    setAttendance_type(currentPage);
-    document.getElementById("form")!.classList.add("fade-out");
-    document.getElementById("submit")!.classList.add("fade-in");
-    document.getElementById("form")!.classList.add("opacity-0");
-    document.getElementById("submit")!.classList.remove("opacity-0");
+    setUserName(findName(nameData, id) ?? "");
     event.preventDefault();
     // get the current time and date
     const date = new Date();

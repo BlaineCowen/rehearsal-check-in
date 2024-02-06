@@ -28,7 +28,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             range: 'names!A1:L1000',
         })
 
-        res.status(200).json(response.data.values)
+        const [header, ...rows] = response.data.values as any[][];
+
+        // Convert the rows into objects
+        const data = rows.map(row => {
+            const obj: { [key: string]: any } = {}; // Define obj as an indexable object
+            header.forEach((column, index) => {
+                obj[column] = row[index];
+            });
+            return obj;
+        });
+
+        res.status(200).json(data)
     } catch (err) {
         console.log(err)
         res.status(500).json({ error: 'An error occurred while retrieving data' })
