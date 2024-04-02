@@ -17,10 +17,10 @@ import Attendance_Page from "./attendance_page";
 import Navbar from "@/components/Navbar";
 import { useSearchParams } from "react-router-dom";
 
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
 
 export default function Home({
   params,
@@ -37,11 +37,16 @@ export default function Home({
 
   return (
     <html lang="en">
-      <body>
-        <Navbar onOptionClick={handleButtonClick} />
+      <main>
+        <body>
+          <Navbar
+            onOptionClick={handleButtonClick}
+            className="fixed h-16 bg-black z-10 w-full justify-center"
+          />
 
-        <Attendance_Page currentPage={currentPage} />
-      </body>
+          <Attendance_Page currentPage={currentPage} />
+        </body>
+      </main>
     </html>
   );
 }

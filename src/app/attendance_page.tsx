@@ -139,9 +139,7 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
   };
 
   return (
-    <main className="min-h-screen items-center relative justify-between p-24">
-      {/* make a header that says "SOHO CHOIR CHECK IN" */}
-
+    <div className="min-h-screen items-center relative justify-between p-24">
       <div className="relative pb-10 h-fit mb-10">
         <h1 className="text-6xl flex w-full font-bold text-center capitalize justify-center pb-10 font-sans">
           SOHO CHOIR {currentPage.toUpperCase()} CHECK IN
@@ -171,28 +169,15 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
               Submit
             </button>
           </form>
-          
-        </div>
-        {/* add a check box that says "Red Rhythm?" */}
-      </div>
-
-      <div className="w-full flex h-full">
-        <div className=" flex w-full h-60">
-          {/* add div */}
-
-          <div className="relative w-full h-full">
-            <Image
-              fill
-              src="/app/logo.png"
-              alt="logo"
-              style={{
-                objectFit: "contain",
-                maxHeight: "500px",
-              }}
-            />
-          </div>
         </div>
       </div>
-    </main>
+      <div className="relative w-full h-64"></div>
+
+      <div className="flex justify-center">
+        <Image src="/logo.png" alt="logo" width={400} height={400} />
+      </div>
+
+      <div className="w-full flex h-full"></div>
+    </div>
   );
 }

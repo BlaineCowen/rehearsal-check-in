@@ -12,6 +12,8 @@ function Checkbox(studentName: string, key: string) {
     <div className="flex w-full justify-center pt-16">
       <label className="w-11/12 text-left text-lg font-semibold">
         {studentName}
+      </label>{" "}
+      {/* Added closing tag for label */}
       <input
         type="checkbox"
         checked={isChecked}

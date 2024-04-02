@@ -8,8 +8,10 @@ import Attendance_Page from "../app/attendance_page";
 
 function Navbar({
   onOptionClick,
+  className,
 }: {
   onOptionClick: (pageName: string) => void;
+  className: string;
 }) {
   const [currentPage, setCurrentPage] = useState<string>("Attendance");
 
@@ -22,30 +24,41 @@ function Navbar({
     console.log("currentPage", currentPage);
   };
   return (
-    <div className="h-16">
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Soho Choir
-        </Typography>
-        <Button color="inherit" onClick={() => handleButtonClick("Rehearsal")}>
-          <Link href={{ pathname: "../", query: { name: "Rehearsal" } }}>
-            Rehearsal
-          </Link>
-        </Button>
-        <Button color="inherit" onClick={() => handleButtonClick("Attendance")}>
-          <Link href={{ pathname: "../", query: { name: "Attendance" } }}>
-            Attendance
-          </Link>
-        </Button>
-        <Button color="inherit" onClick={() => handleButtonClick("Red Rhythm")}>
-          <Link href={{ pathname: "../", query: { name: "Red Rhythm" } }}>
-            Red Rhythm
-          </Link>
-        </Button>
-        <Button color="inherit">
-          <Link href="app/student_attendance">Student Attendance</Link>
-        </Button>
-      </Toolbar>
+    <div className={className}>
+      <div className="h-full bg-black">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Soho Choir
+          </Typography>
+          <Button
+            color="inherit"
+            onClick={() => handleButtonClick("Rehearsal")}
+          >
+            <Link href={{ pathname: "../", query: { name: "Rehearsal" } }}>
+              Rehearsal
+            </Link>
+          </Button>
+          <Button
+            color="inherit"
+            onClick={() => handleButtonClick("Attendance")}
+          >
+            <Link href={{ pathname: "../", query: { name: "Attendance" } }}>
+              Attendance
+            </Link>
+          </Button>
+          <Button
+            color="inherit"
+            onClick={() => handleButtonClick("Red Rhythm")}
+          >
+            <Link href={{ pathname: "../", query: { name: "Red Rhythm" } }}>
+              Red Rhythm
+            </Link>
+          </Button>
+          <Button color="inherit">
+            <Link href="app/student_attendance">Student Attendance</Link>
+          </Button>
+        </Toolbar>
+      </div>
     </div>
   );
 }

@@ -42,7 +42,7 @@ export default function Student_Attendance({}: Attendance_PageProps) {
     setCurrentPage(pageName);
   };
 
-  const refreshPage = () => {
+  const RefreshPage = () => {
     const router = useRouter();
     router.push("/app/attendance");
     console.log("refresh page?");
@@ -76,7 +76,7 @@ export default function Student_Attendance({}: Attendance_PageProps) {
       },
       body: JSON.stringify(sheetForm),
     });
-    refreshPage();
+    RefreshPage();
 
     const data = await response.json();
 
@@ -149,6 +149,7 @@ export default function Student_Attendance({}: Attendance_PageProps) {
                 .filter((student) => student.Period === "1")
                 .map((student) => (
                   <NameBox
+                    key={student.Student_ID} // Add key prop with unique value
                     name={student.First_Last}
                     id={student.Student_ID}
                     onSelect={(id: string) => {
