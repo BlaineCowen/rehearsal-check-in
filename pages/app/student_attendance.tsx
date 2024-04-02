@@ -122,7 +122,10 @@ export default function Student_Attendance({}: Attendance_PageProps) {
   return (
     <main>
       <div className="flex flex-col h-screen">
-        <Navbar onOptionClick={handleButtonClick} />
+        <Navbar
+          onOptionClick={handleButtonClick}
+          className="fixed h-16 bg-black z-10 w-full justify-center"
+        />
         <div className="flex-auto pt-4 flex items-center justify-center screen-minus-navbar">
           <div className="">
             <div className="text-5xl">Student Attendance</div>
