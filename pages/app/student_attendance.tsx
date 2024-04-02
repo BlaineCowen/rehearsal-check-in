@@ -23,7 +23,6 @@ import { Button } from "@mui/material";
 interface Attendance_PageProps {
   currentPage: string;
 }
-
 // get the namedata from the parent page
 
 export default function Student_Attendance({}: Attendance_PageProps) {
@@ -35,6 +34,7 @@ export default function Student_Attendance({}: Attendance_PageProps) {
   const [userName, setUserName] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [currentPage, setCurrentPage] = useState<string>("Attendance");
+  const router = useRouter();
 
   // render Daily_Page
 
@@ -43,7 +43,6 @@ export default function Student_Attendance({}: Attendance_PageProps) {
   };
 
   const RefreshPage = () => {
-    const router = useRouter();
     router.push("/app/attendance");
     console.log("refresh page?");
   };
