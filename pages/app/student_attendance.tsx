@@ -42,7 +42,7 @@ export default function Student_Attendance({}: Attendance_PageProps) {
     setCurrentPage(pageName);
   };
 
-  const RefreshPage = () => {
+  const refreshPage = () => {
     router.push("/app/attendance");
     console.log("refresh page?");
   };
@@ -75,7 +75,7 @@ export default function Student_Attendance({}: Attendance_PageProps) {
       },
       body: JSON.stringify(sheetForm),
     });
-    RefreshPage();
+    refreshPage();
 
     const data = await response.json();
 
