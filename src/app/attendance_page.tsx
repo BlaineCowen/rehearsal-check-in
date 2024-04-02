@@ -171,6 +171,7 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
               Submit
             </button>
           </form>
+          
         </div>
         {/* add a check box that says "Red Rhythm?" */}
       </div>
@@ -182,7 +183,7 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
           <div className="relative w-full h-full">
             <Image
               fill
-              src="/logo.png"
+              src="/app/logo.png"
               alt="logo"
               style={{
                 objectFit: "contain",

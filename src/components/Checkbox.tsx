@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function Checkbox(studentName: string) {
+function Checkbox(studentName: string, key: string) {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {

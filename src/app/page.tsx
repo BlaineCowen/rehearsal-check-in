@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, use } from "react";
+
 import { google } from "googleapis";
 import { GoogleAuth } from "google-auth-library";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { parse } from "url";
 
 import Image from "next/image";
 import Checkbox from "@/components/Checkbox";
@@ -11,11 +14,22 @@ import { Toolbar } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Attendance_Page from "./attendance_page";
+import Navbar from "@/components/Navbar";
+import { useSearchParams } from "react-router-dom";
 
-export default function Home() {
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+
+export default function Home({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const [currentPage, setCurrentPage] = useState<string>("Attendance");
-
-  // render Daily_Page
 
   const handleButtonClick = (pageName: string) => {
     setCurrentPage(pageName);
@@ -24,32 +38,8 @@ export default function Home() {
   return (
     <html lang="en">
       <body>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Soho Choir
-          </Typography>
-          <Button
-            color="inherit"
-            onClick={() => handleButtonClick("Rehearsal")}
-          >
-            Rehearsal
-          </Button>
-          <Button
-            color="inherit"
-            onClick={() => handleButtonClick("Attendance")}
-          >
-            Attendance
-          </Button>
-          <Button
-            color="inherit"
-            onClick={() => handleButtonClick("Red Rhythm")}
-          >
-            Red Rhythm
-          </Button>
-          <Button color="inherit">
-            <Link href="app/student_attendance">Student Attendance</Link>
-          </Button>
-        </Toolbar>
+        <Navbar onOptionClick={handleButtonClick} />
+
         <Attendance_Page currentPage={currentPage} />
       </body>
     </html>

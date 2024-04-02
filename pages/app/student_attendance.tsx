@@ -6,16 +6,17 @@
 // Path: src/app/student_attendance.tsx
 // for every student who is present, add their id to the google sheet
 
+import "tailwindcss/tailwind.css";
 import React, { useState, useEffect } from "react";
-import { google } from "googleapis";
-import { GoogleAuth } from "google-auth-library";
-import { Console, log } from "console";
-import { OAuth2Client } from "google-auth-library";
-import { Credentials } from "google-auth-library/build/src/auth/credentials";
+import "/src/app/globals.css";
+import { useRouter } from "next/navigation";
 
 import Image from "next/image";
 
 import Checkbox from "@/components/Checkbox";
+import Navbar from "@/components/Navbar";
+import NameBox from "@/components/Namebox";
+import { Button } from "@mui/material";
 
 // get data from the server
 
@@ -25,9 +26,7 @@ interface Attendance_PageProps {
 
 // get the namedata from the parent page
 
-export default function Student_Attendance({
-  currentPage,
-}: Attendance_PageProps) {
+export default function Student_Attendance({}: Attendance_PageProps) {
   const [checkedStudents, setCheckedStudents] = useState<string[]>([]);
   const [attendance_type, setAttendance_type] = useState("Daily");
   const [id, setId] = useState("");
@@ -35,6 +34,19 @@ export default function Student_Attendance({
   const [nameData, setNameData] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState<string>("Attendance");
+
+  // render Daily_Page
+
+  const handleButtonClick = (pageName: string) => {
+    setCurrentPage(pageName);
+  };
+
+  const refreshPage = () => {
+    const router = useRouter();
+    router.push("/app/attendance");
+    console.log("refresh page?");
+  };
 
   const handleCheckboxChange = (studentId: string, isChecked: boolean) => {
     if (isChecked) {
@@ -64,8 +76,17 @@ export default function Student_Attendance({
       },
       body: JSON.stringify(sheetForm),
     });
+    refreshPage();
+
     const data = await response.json();
+
+    // clear the checkboxes
+    // setCheckedStudents([]);
   };
+
+  useEffect(() => {
+    console.log(currentPage);
+  }, [currentPage]);
 
   React.useEffect(() => {
     // check to see if data is already stored in the session
@@ -99,30 +120,52 @@ export default function Student_Attendance({
   }, []);
 
   return (
-    <div>
-      <h1>Student Attendance</h1>
-      <h2>Period 1</h2>
-      <div>
-        {nameData
-          .filter((student) => student.Period === "1")
-          .map((student) => (
-            <div>
-              <input
-                type="checkbox"
-                id={student.Student_ID}
-                name={student.First_Last}
-                value={student.First_Last}
-                onChange={(e) =>
-                  handleCheckboxChange(e.target.id, e.target.checked)
-                }
-              />
-              <label htmlFor={student.First_Last}>{student.First_Last}</label>
+    <main>
+      <div className="flex flex-col h-screen">
+        <Navbar onOptionClick={handleButtonClick} />
+        <div className="flex-auto pt-4 flex items-center justify-center screen-minus-navbar">
+          <div className="">
+            <div className="text-5xl">Student Attendance</div>
+            <div className="pt-6">
+              {/* {nameData
+                .filter((student) => student.Period === "1")
+                .map((student) => (
+                  <div className=" flex items-center">
+                    <input
+                      type="checkbox"
+                      id={student.Student_ID}
+                      name={student.First_Last}
+                      value={student.First_Last}
+                      onChange={(e) =>
+                        handleCheckboxChange(e.target.id, e.target.checked)
+                      }
+                    />
+                    <label className="text-3xl" htmlFor={student.First_Last}>
+                      {student.First_Last}
+                    </label>
+                  </div>
+                ))} */}
+              {nameData
+                .filter((student) => student.Period === "1")
+                .map((student) => (
+                  <NameBox
+                    name={student.First_Last}
+                    id={student.Student_ID}
+                    onSelect={(id: string) => {
+                      console.log("id", id);
+                      handleCheckboxChange(id, true);
+                    }}
+                  />
+                ))}
             </div>
-          ))}
+            <div className="mt-6 h-16 border-white bg-green-500 text-black border rounded hover:bg-green-400 flex justify-center ">
+              <button className="text-2xl" onClick={handleSubmit}>
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* submit button */}
-      <button onClick={handleSubmit}>Submit</button>
-    </div>
+    </main>
   );
 }
