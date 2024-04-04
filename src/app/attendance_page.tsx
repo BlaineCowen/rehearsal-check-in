@@ -172,6 +172,9 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
         </div>
       </div>
       <div className="relative w-full h-64"></div>
+      <div className="flex justify-center">
+        <h1 className="">Last to check in: {userName}</h1>
+      </div>
 
       <div className="flex justify-center">
         <Image src="/logo.png" alt="logo" width={400} height={400} />
