@@ -57,11 +57,13 @@ export default function Home({
     <html lang="en">
       <main>
         <body>
-          <Navbar
-            onOptionClick={handleButtonClick}
-            className="fixed h-16 bg-black z-10 w-full justify-center"
-          />
-          <h1 className="text-4xl text-center mt-8"></h1>
+          <div className="flex justify-center">
+            <Navbar
+              onOptionClick={handleButtonClick}
+              className="fixed h-16 bg-black z-10 w-11/12 justify-center border-b-2 border-x-2 rounded-b-lg border-gray-800 shadow-lg shadow-black"
+            />
+          </div>
+          <h1 className="text-4xl text-center"></h1>
           {isOnline ? (
             <Attendance_Page currentPage={currentPage} />
           ) : (

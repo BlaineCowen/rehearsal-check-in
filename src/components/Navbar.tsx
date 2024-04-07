@@ -25,7 +25,7 @@ function Navbar({
   };
   return (
     <div className={className}>
-      <div className="h-full bg-black">
+      <div className="h-full">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Soho Choir
