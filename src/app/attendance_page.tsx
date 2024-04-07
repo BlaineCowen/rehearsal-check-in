@@ -89,7 +89,7 @@ export default function Attendance_Page({ currentPage }: Attendance_PageProps) {
     setUserName(findName(nameData, id) ?? "");
     event.preventDefault();
     // get the current time and date
-    const date = new Date();
+    const date = new Date().toLocaleString();
 
     const form = {
       id,
