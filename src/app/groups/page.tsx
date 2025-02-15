@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import CreateGroupClient from "@/components/CreateGroupClient";
+import GroupsPage from "@/components/GroupsPage";
 
-export default async function CreateGroupPage() {
+export default async function Groups() {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
 
@@ -12,7 +12,11 @@ export default async function CreateGroupPage() {
     include: {
       organizations: {
         include: {
-          students: true,
+          groups: {
+            include: {
+              students: true,
+            },
+          },
         },
       },
     },
@@ -21,8 +25,8 @@ export default async function CreateGroupPage() {
   if (!user?.organizations[0]) redirect("/");
 
   return (
-    <CreateGroupClient
-      initialStudents={user.organizations[0].students}
+    <GroupsPage
+      groups={user.organizations[0].groups}
       organizationId={user.organizations[0].id}
     />
   );

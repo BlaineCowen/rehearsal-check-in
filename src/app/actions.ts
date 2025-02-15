@@ -3,7 +3,7 @@
 import { signIn } from "@/auth";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
+import { Student } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 export async function signInWithGoogle() {

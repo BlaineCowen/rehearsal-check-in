@@ -49,6 +49,12 @@ export default function Dashboard({
           href="/reports"
           buttonText="Create Report"
         />
+        <DashboardCard
+          title="Edit Groups"
+          description="Edit groups"
+          href="/groups"
+          buttonText="Edit Groups"
+        />
       </div>
     </main>
   );

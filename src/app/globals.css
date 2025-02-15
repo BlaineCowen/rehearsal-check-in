@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --foreground-rgb: 255, 255, 255;
@@ -8,13 +6,6 @@
   --background-end-rgb: 0, 0, 0;
 }
 
-input {
-  @apply bg-gray-900 p-2 rounded-md;
-}
-
-form {
-  @apply flex flex-col gap-2;
-}
 
 /* make an animation for form to fade out */
 @keyframes fadeOut {
@@ -99,13 +90,18 @@ form {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
-
-@layer base {
   * {
-    @apply border-border;
+
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-slate-900 text-white;
   }
+  input {
+    @apply dark:bg-gray-900 p-2 rounded-md;
+  }
+  
+  form {
+    @apply flex flex-col gap-2;
+  }
+  
 }

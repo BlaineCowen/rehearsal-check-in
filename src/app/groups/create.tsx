@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 export default function CreateGroup() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -12,24 +12,11 @@ export default function CreateGroup() {
     setLoading(true);
 
     try {
-      // First upload image if exists
-      let imageUrl = null;
-      if (image) {
-        const formData = new FormData();
-        formData.append("file", image);
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const { url } = await uploadRes.json();
-        imageUrl = url;
-      }
-
       // Create group
       const res = await fetch("/api/groups/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, imageUrl }),
+        body: JSON.stringify({ name }),
       });
 
       if (!res.ok) throw new Error("Failed to create group");
@@ -55,16 +42,6 @@ export default function CreateGroup() {
             onChange={(e) => setName(e.target.value)}
             className="w-full p-2 border rounded"
             required
-          />
-        </div>
-
-        <div>
-          <label className="block mb-2">Group Image (optional)</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImage(e.target.files?.[0] || null)}
-            className="w-full"
           />
         </div>
 
