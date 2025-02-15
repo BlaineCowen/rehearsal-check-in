@@ -1,0 +1,24 @@
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import StudentsPage from "@/components/StudentsPage";
+
+export default async function Students() {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/login");
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: {
+      organizations: {
+        include: {
+          students: true,
+        },
+      },
+    },
+  });
+
+  if (!user?.organizations[0]) redirect("/");
+
+  return <StudentsPage students={user.organizations[0].students} />;
+}

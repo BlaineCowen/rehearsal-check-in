@@ -10,16 +10,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.9",
     "@mui/material": "^5.14.19",
+    "@prisma/client": "^6.3.1",
+    "@prisma/extension-accelerate": "^1.2.2",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@supabase/supabase-js": "^2.48.1",
+    "@tanstack/react-table": "^8.21.2",
     "@types/node": "20.3.1",
     "@types/react": "18.2.12",
     "@types/react-dom": "18.2.5",
     "autoprefixer": "10.4.14",
     "axios": "^1.4.0",
     "child_process": "^1.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "console": "^0.7.2",
     "cors": "^2.8.5",
     "eslint": "8.43.0",
@@ -27,13 +35,18 @@
     "gapi": "^0.0.3",
     "googleapis": "^118.0.0",
     "googleauth": "^3.0.2",
+    "lucide-react": "^0.475.0",
     "material": "^0.7.8",
     "next": "^14.1.4",
+    "next-auth": "^5.0.0-beta.25",
     "postcss": "8.4.24",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "^6.20.1",
+    "shadcdn": "^0.0.8",
+    "tailwind-merge": "^3.0.1",
     "tailwindcss": "^3.3.2",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "5.1.3"
   },
   "browser": {
@@ -42,6 +55,8 @@
     "path": false
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17"
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^10.0.0",
+    "prisma": "^6.3.1"
   }
 }

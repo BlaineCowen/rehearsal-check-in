@@ -1,6 +1,8 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import Image from "next/image";
+import SessionProvider from "@/components/SessionProvider";
+import { auth } from "@/auth";
 // import "tailwindcss/tailwind.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -10,11 +12,13 @@ export const metadata = {
   description: "Attendance",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <html lang="en">
       <head>
@@ -23,7 +27,7 @@ export default function RootLayout({
         <link rel="icon" href="/logo.ico" />
       </head>
       <body className={inter.className}>
-        {children}
+        <SessionProvider session={session}>{children}</SessionProvider>
         <div className="flex w-full justify-center pt-16"></div>
       </body>
     </html>
