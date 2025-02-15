@@ -20,5 +20,10 @@ export default async function Students() {
 
   if (!user?.organizations[0]) redirect("/");
 
-  return <StudentsPage students={user.organizations[0].students} />;
+  return (
+    <StudentsPage
+      students={user.organizations[0].students}
+      organizationId={user.organizations[0].id}
+    />
+  );
 }

@@ -66,4 +66,56 @@ export async function importStudents(csvData: string) {
     data: students,
     skipDuplicates: true,
   });
+}
+
+export async function createStudent(formData: {
+  firstName: string;
+  lastName: string;
+  studentId: string;
+  grade?: string;
+}) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    throw new Error("Unauthorized");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { organizations: true },
+  });
+
+  if (!user?.organizations[0]?.id) {
+    throw new Error("Organization not found");
+  }
+
+  await prisma.student.create({
+    data: {
+      ...formData,
+      organizationId: user.organizations[0].id,
+    },
+  });
+}
+
+export async function updateStudents(students: Student[]) {
+  const session = await auth()
+  if (!session?.user?.email) throw new Error("Unauthorized")
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { organizations: true }
+  })
+
+  if (!user?.organizations[0]?.id) throw new Error("Organization not found")
+
+  await prisma.$transaction([
+    prisma.student.deleteMany({
+      where: { organizationId: user.organizations[0].id }
+    }),
+    prisma.student.createMany({
+      data: students.map(s => ({
+        ...s,
+        organizationId: user.organizations[0].id
+      }))
+    })
+  ])
 } 

@@ -89,7 +89,7 @@ model Student {
   firstName      String
   lastName       String
   grade          String?
-  organizationId String?
+  organizationId String
   groupId        String?
   createdAt      DateTime     @default(now())
   attendance     Attendance[]

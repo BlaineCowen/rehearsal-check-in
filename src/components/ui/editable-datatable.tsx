@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -10,6 +9,7 @@ import {
   type SortingState,
   type ColumnFiltersState,
   getFilteredRowModel,
+  ColumnDef,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -30,106 +30,51 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
+import { toast } from "@/hooks/use-toast";
 
-export type GridData = {
-  id: string;
-  firstName: string;
-  lastName: string;
-};
-
-interface EditableDataTableProps {
-  initialData: GridData[];
+interface EditableDataTableProps<TData> {
+  initialData: TData[];
+  columns: ColumnDef<TData>[];
+  onRowUpdate: (
+    rowIndex: number,
+    columnId: string,
+    value: string
+  ) => Promise<void>;
+  onRowDelete: (rowIndex: number) => Promise<void>;
+  onDataChange: (data: TData[]) => void;
 }
 
-export default function EditableDataTable({
+export default function EditableDataTable<TData extends { id: string }>({
   initialData,
-}: EditableDataTableProps) {
-  const [data, setData] = useState<GridData[]>(initialData || []);
+  columns,
+  onRowUpdate,
+  onRowDelete,
+  onDataChange,
+}: EditableDataTableProps<TData>) {
+  const [data, setData] = useState<TData[]>(initialData || []);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const blankRowRef = useRef<HTMLTableRowElement>(null);
+  const [pendingRow, setPendingRow] = useState<Partial<TData> & { id: string }>(
+    {} as Partial<TData> & { id: string }
+  );
 
   useEffect(() => {
     setData(initialData || []);
   }, [initialData]);
-
-  const columns: ColumnDef<GridData>[] = [
-    {
-      accessorKey: "firstName",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            First Name
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: EditableCell,
-    },
-    {
-      accessorKey: "lastName",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Last Name
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: EditableCell,
-    },
-    {
-      accessorKey: "id",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            ID
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: EditableCell,
-    },
-  ];
 
   const table = useReactTable({
     data: data || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
+
     state: {
       sorting,
       globalFilter,
@@ -139,23 +84,15 @@ export default function EditableDataTable({
       updateData: (rowIndex: number, columnId: string, value: string) => {
         setData((old) => {
           const updatedData = old || [];
-          if (rowIndex === updatedData.length) {
-            // This is the blank row, add a new row
-            const newRow: GridData = {
-              id: (updatedData.length + 1).toString(),
-              firstName: "",
-              lastName: "",
-            };
-            newRow[columnId as keyof GridData] = value;
-            return [...updatedData, newRow];
-          }
           return updatedData.map((row, index) => {
             if (index === rowIndex) {
+              onDataChange(updatedData);
               return {
                 ...updatedData[rowIndex],
                 [columnId]: value,
               };
             }
+            onDataChange(updatedData);
             return row;
           });
         });
@@ -163,22 +100,69 @@ export default function EditableDataTable({
     },
   });
 
+  const handlePendingRowChange = (columnId: keyof TData, value: string) => {
+    setPendingRow((prev) => ({
+      ...prev,
+      [columnId]: value,
+    }));
+  };
+
+  const isRowComplete = (row: any) => {
+    return row.firstName && row.lastName && row.studentId;
+  };
+
+  const handlePendingRowKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (
+        !pendingRow.firstName ||
+        !pendingRow.lastName ||
+        !pendingRow.studentId
+      ) {
+        toast({
+          title: "Incomplete row",
+          description: "Please fill in all required fields",
+          variant: "destructive",
+        });
+        return;
+      }
+      const newRow = {
+        ...pendingRow,
+        id: crypto.randomUUID(),
+        grade: pendingRow.grade || null,
+      } as TData;
+      onDataChange([...data, newRow]);
+      setPendingRow({} as Partial<TData> & { id: string });
+    }
+  };
+
   const handlePaste = (e: React.ClipboardEvent<HTMLTableRowElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text");
     const rows = pastedData.split("\n");
-    const newData = rows
-      .map((row) => {
-        const [firstName, lastName, id] = row.split(",");
-        return {
-          id: id?.trim() || ((data?.length || 0) + 1).toString(),
-          firstName: firstName?.trim() || "",
-          lastName: lastName?.trim() || "",
-        };
-      })
-      .filter((row) => row.firstName || row.lastName || row.id);
 
-    setData((oldData) => [...(oldData || []), ...newData]);
+    const newData = rows
+      .filter((row) => row.trim().length > 0)
+      .map((row) => {
+        const [studentId, firstName, lastName] = row
+          .split("\t")
+          .map((cell) => cell.trim());
+
+        if (!studentId || !firstName || !lastName) return null;
+
+        return {
+          id: crypto.randomUUID(),
+          studentId,
+          firstName,
+          lastName,
+          grade: null,
+        } as unknown as TData;
+      })
+      .filter((row): row is TData => row !== null);
+
+    onDataChange([...data, ...newData]);
   };
 
   return (
@@ -213,6 +197,7 @@ export default function EditableDataTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={!isRowComplete(row.original) ? "bg-red-100" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -239,27 +224,29 @@ export default function EditableDataTable({
               onPaste={handlePaste}
               className="bg-muted/50"
             >
-              {columns.map((column) => (
-                // @ts-ignore
+              {columns.map((column: ColumnDef<TData>) => (
                 <TableCell key={column.accessorKey as string}>
                   <Input
-                    // @ts-ignore
-                    placeholder={`Enter ${column.accessorKey}`}
+                    placeholder={`Enter ${column.accessorKey as string}`}
+                    value={
+                      (pendingRow[
+                        column.accessorKey as keyof TData
+                      ] as string) || ""
+                    }
                     onChange={(e) =>
-                      // @ts-ignore
-                      table.options.meta?.updateData(
-                        (data || []).length,
-                        // @ts-ignore
-                        column.accessorKey as string,
+                      handlePendingRowChange(
+                        column.accessorKey as keyof TData,
                         e.target.value
                       )
                     }
+                    onKeyDown={handlePendingRowKeyDown}
                   />
                 </TableCell>
               ))}
             </TableRow>
           </TableBody>
         </Table>
+        <Toaster />
       </div>
 
       <div className="flex items-center justify-between space-x-2 py-4">
