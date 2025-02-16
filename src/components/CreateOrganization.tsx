@@ -10,7 +10,7 @@ export default function CreateOrganization() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     await createOrganization(formData);
-    router.refresh();
+    router.push("/");
   };
 
   return (

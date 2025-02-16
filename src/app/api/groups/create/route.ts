@@ -1,20 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.organization?.id) {
+    return new Response(null, { status: 401 });
   }
 
-  try {
-    const { name, organizationId, studentIds } = await req.json();
+  const { name, studentIds } = await req.json();
 
-    const group = await prisma.group.create({
+  try {
+    const newGroup = await prisma.group.create({
       data: {
         name,
-        organizationId,
+        organizationId: session.user.organization.id,
         students: {
           connect: studentIds.map((id: string) => ({ id })),
         },
@@ -24,12 +23,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(group);
+    return Response.json(newGroup);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: "Failed to create group" },
-      { status: 500 }
-    );
+    console.error("Failed to create group:", error);
+    return new Response(null, { status: 500 });
   }
 } 

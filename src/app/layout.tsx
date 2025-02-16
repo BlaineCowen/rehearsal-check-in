@@ -1,9 +1,8 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Image from "next/image";
-import SessionProvider from "@/components/SessionProvider";
 import { auth } from "@/auth";
-// import "tailwindcss/tailwind.css";
+import Providers from "@/components/Providers";
+import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,7 +26,10 @@ export default async function RootLayout({
         <link rel="icon" href="/logo.ico" />
       </head>
       <body className={inter.className}>
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <Providers session={session}>
+          <Navbar orgName={session?.user?.organization?.name || ""} />
+          <main className="pt-40">{children}</main>
+        </Providers>
         <div className="flex w-full justify-center pt-16"></div>
       </body>
     </html>

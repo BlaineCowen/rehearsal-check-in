@@ -21,6 +21,19 @@
         "args": ["dev"],
         "console": "integratedTerminal",
         "internalConsoleOptions": "neverOpen"
-      }
+      },
+      {
+        "name": "Next.js: debug client-side (Firefox)",
+        "type": "firefox",
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "reAttach": true,
+        "pathMappings": [
+          {
+            "url": "webpack://_N_E",
+            "path": "${workspaceFolder}"
+          }
+        ]
+      },
     ]
 }

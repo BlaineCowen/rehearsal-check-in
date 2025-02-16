@@ -23,16 +23,17 @@ export async function POST(req: Request) {
       return new NextResponse("User not found", { status: 404 });
     }
 
-    const group = await prisma.group.create({
+    const organization = await prisma.organization.create({
       data: {
         name,
         imageUrl,
         userId: user.id,
-        createdAt: new Date(),
       }
     });
 
-    return NextResponse.json(group);
+    // Force session refresh
+    await fetch('/api/auth/session?update');
+
   } catch (error) {
     console.error("[GROUPS_CREATE]", error);
     return new NextResponse("Internal Error", { status: 500 });

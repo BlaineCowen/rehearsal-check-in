@@ -1,61 +1,46 @@
+"use client";
 import React from "react";
 import { useState } from "react";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Attendance_Page from "../app/attendance_page";
+import { QueryClient } from "@tanstack/react-query";
 
-function Navbar({
-  onOptionClick,
-  className,
-}: {
-  onOptionClick: (pageName: string) => void;
-  className: string;
-}) {
-  const [currentPage, setCurrentPage] = useState<string>("Attendance");
-
-  // render Daily_Page
+function Navbar({ orgName }: { orgName: string }) {
+  const router = useRouter();
 
   const handleButtonClick = (pageName: string) => {
-    // go to home page
-    setCurrentPage(pageName);
-    onOptionClick(pageName);
-    console.log("currentPage", currentPage);
+    router.push(`/${pageName}`);
   };
+
   return (
-    <div className={className}>
+    <div className={orgName}>
       <div className="h-full">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Soho Choir
+            Easy Attendance
           </Typography>
-          <Button
-            color="inherit"
-            onClick={() => handleButtonClick("Rehearsal")}
-          >
-            <Link href={{ pathname: "../", query: { name: "Rehearsal" } }}>
-              Rehearsal
-            </Link>
+          <Button color="inherit" onClick={() => handleButtonClick("")}>
+            <Link href={{ pathname: "../", query: { name: "" } }}>Home</Link>
           </Button>
           <Button
             color="inherit"
             onClick={() => handleButtonClick("Attendance")}
           >
-            <Link href={{ pathname: "../", query: { name: "Attendance" } }}>
-              Attendance
+            <Link href={{ pathname: "../", query: { name: "students" } }}>
+              Students
             </Link>
           </Button>
           <Button
             color="inherit"
             onClick={() => handleButtonClick("Red Rhythm")}
           >
-            <Link href={{ pathname: "../", query: { name: "Red Rhythm" } }}>
-              Red Rhythm
+            <Link href={{ pathname: "../", query: { name: "groups" } }}>
+              groups
             </Link>
-          </Button>
-          <Button color="inherit">
-            <Link href="app/student_attendance">Student Attendance</Link>
           </Button>
         </Toolbar>
       </div>

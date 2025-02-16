@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Student } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import EditableDataTable from "@/components/ui/editable-datatable";
@@ -16,7 +16,8 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
 
 // Define your columns with proper typing
 const columns: ColumnDef<Student>[] = [
@@ -37,15 +38,20 @@ const columns: ColumnDef<Student>[] = [
   },
 ];
 
-export default function StudentsPage({
-  students,
-  organizationId,
-}: {
-  students: Student[];
-  organizationId: string;
-}) {
-  const [currentData, setCurrentData] = useState(students);
+export default function StudentsPage() {
+  const { data: user, isLoading } = useUser();
+  const [currentData, setCurrentData] = useState<Student[]>([]);
   const router = useRouter();
+  useEffect(() => {
+    if (user?.organizations[0]?.students) {
+      setCurrentData(user.organizations[0].students);
+    }
+  }, [user]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!user?.organizations[0]) return null;
+
+  const organizationId = user.organizations[0].id;
 
   const handleDataChange = (newData: Student[]) => {
     setCurrentData(newData);
@@ -56,7 +62,6 @@ export default function StudentsPage({
     columnId: string,
     value: string
   ) => {
-    // Update your backend here
     const updatedData = currentData.map((row, index) =>
       index === rowIndex ? { ...row, [columnId]: value } : row
     );
@@ -64,20 +69,22 @@ export default function StudentsPage({
   };
 
   const handleRowDelete = async (rowIndex: number) => {
-    // Delete from backend here
     const updatedData = currentData.filter((_, index) => index !== rowIndex);
     setCurrentData(updatedData);
   };
 
   const updateStudentsPrisma = async (students: Student[]) => {
-    // use api/students/update-students
     const response = await fetch("/api/students/update-students", {
       method: "POST",
-      body: JSON.stringify({ students, organizationId: organizationId }),
+      body: JSON.stringify({ students, organizationId }),
     });
-    console.log(JSON.stringify({ students, organizationId: organizationId }));
     const data = await response.json();
-    console.log(data);
+    if (data.error) {
+      console.error(data.error);
+    } else {
+      // redirect to /
+      router.push("/");
+    }
   };
 
   return (
@@ -94,11 +101,7 @@ export default function StudentsPage({
         onDataChange={handleDataChange}
       />
 
-      <Button
-        onClick={() => {
-          updateStudentsPrisma(currentData);
-        }}
-      >
+      <Button onClick={() => updateStudentsPrisma(currentData)}>
         Update Students
       </Button>
     </main>

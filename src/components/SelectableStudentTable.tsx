@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Student } from "@prisma/client";
 import {
   ColumnDef,
@@ -48,37 +48,37 @@ export default function SelectableStudentTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
-  const [rowSelection, setRowSelection] = useState({});
+
+  // Create a map of selected students for faster lookup
+  const selectedMap = useMemo(
+    () =>
+      selectedStudents.reduce((acc, student) => {
+        acc[student.id] = true;
+        return acc;
+      }, {} as Record<string, boolean>),
+    [selectedStudents]
+  );
 
   const columns: ColumnDef<Student>[] = [
     {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
+          checked={selectedStudents.length === students.length}
           onCheckedChange={(value) => {
-            table.toggleAllPageRowsSelected(!!value);
-            const selectedRows = value
-              ? table.getFilteredRowModel().rows.map((row) => row.original)
-              : [];
-            onSelectionChange(selectedRows);
+            onSelectionChange(value ? students : []);
           }}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => {
-            row.toggleSelected(!!value);
-            const selectedRows = table
-              .getFilteredRowModel()
-              .rows.filter((row) => row.getIsSelected())
-              .map((row) => row.original);
-            onSelectionChange(selectedRows);
+          checked={selectedMap[row.original.id] || false}
+          onCheckedChange={(checked) => {
+            const updatedSelection = checked
+              ? [...selectedStudents, row.original]
+              : selectedStudents.filter((s) => s.id !== row.original.id);
+            onSelectionChange(updatedSelection);
           }}
           aria-label="Select row"
         />
@@ -130,27 +130,16 @@ export default function SelectableStudentTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    enableRowSelection: true,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
+      rowSelection: selectedMap,
     },
   });
-
-  useEffect(() => {
-    const selectedRows = table
-      .getFilteredRowModel()
-      .rows.filter((row) => row.getIsSelected())
-      .map((row) => row.original);
-    onSelectionChange(selectedRows);
-  }, [rowSelection, table]);
 
   return (
     <div className="w-full">
@@ -211,7 +200,11 @@ export default function SelectableStudentTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  className={
+                    selectedMap[row.original.id]
+                      ? "bg-slate-100 text-slate-900"
+                      : ""
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -238,26 +231,7 @@ export default function SelectableStudentTable({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+          {selectedStudents.length} of {students.length} row(s) selected.
         </div>
       </div>
     </div>

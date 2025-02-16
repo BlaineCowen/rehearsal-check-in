@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "export": "next export",
-    "lint": "next lint"
+    "lint": "next lint",
+    "fix-db": "ts-node -r tsconfig-paths/register scripts/fix-replica-identity.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",

@@ -1,13 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { Organization } from "@prisma/client";
+import { useUser, useStudents, useGroups } from "@/hooks/useUser";
 
-export default function Dashboard({
-  organization,
-}: {
-  organization: Organization;
-}) {
+export default function Dashboard() {
+  const { data: user, isLoading: userLoading, error } = useUser();
+  const { data: students } = useStudents();
+  const { data: groups } = useGroups();
+
+  if (error) {
+    console.error("User fetch error:", error);
+    return <div>Error loading dashboard</div>;
+  }
+
+  if (userLoading) {
+    console.log("Loading user data...");
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    console.log("No user data");
+    return <div>No user found</div>;
+  }
+
+  if (!user.organizations?.[0]) {
+    window.location.href = "/create-org";
+    return null;
+  }
+
+  const organization = user.organizations[0];
+
   return (
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -23,16 +45,16 @@ export default function Dashboard({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <DashboardCard
           title="Students"
-          description="View and manage student records"
+          description={`${students?.length || 0} students enrolled`}
           href="/students"
           buttonText="View Students"
         />
 
         <DashboardCard
-          title="Attendance"
-          description="Review attendance history"
-          href="/attendance"
-          buttonText="View Attendance"
+          title="Groups"
+          description={`${groups?.length || 0} active groups`}
+          href="/groups"
+          buttonText="Manage Groups"
         />
 
         <DashboardCard
@@ -48,12 +70,6 @@ export default function Dashboard({
           description="Generate attendance reports"
           href="/reports"
           buttonText="Create Report"
-        />
-        <DashboardCard
-          title="Edit Groups"
-          description="Edit groups"
-          href="/groups"
-          buttonText="Edit Groups"
         />
       </div>
     </main>
