@@ -1,47 +1,37 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return new Response(null, { status: 401 });
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    const { groupIds, date } = await req.json();
-
-    // Get organization from first group
-    const group = await prisma.group.findUnique({
-      where: { id: groupIds[0] },
-      select: { organizationId: true },
-    });
-
-    if (!group) {
-      return new Response(null, { status: 400 });
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // First create the rehearsal
+    const { organizationId, groupIds } = await req.json();
+
     const rehearsal = await prisma.rehearsal.create({
       data: {
-        date: new Date(date),
+        organizationId,
+        date: new Date(),
         userId: session.user.id,
-        organizationId: group.organizationId,
+        active: true,
         groups: {
           connect: groupIds.map((id: string) => ({ id })),
         },
       },
       include: {
-        groups: {
-          include: {
-            students: true,
-          },
-        },
+        groups: true,
       },
     });
 
-    return Response.json(rehearsal);
+    return NextResponse.json(rehearsal);
   } catch (error) {
     console.error("Failed to create rehearsal:", error);
-    return new Response(null, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create rehearsal" },
+      { status: 500 }
+    );
   }
 }

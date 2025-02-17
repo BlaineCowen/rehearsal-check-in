@@ -1,17 +1,19 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { rehearsalId: string } }
+  req: NextRequest,
+  context: { params: Promise<{ rehearsalId: string }> }
 ) {
   try {
     const session = await auth();
+    const params = await context.params;
     if (!session?.user?.email) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { rehearsalId } = await params;
+    const { rehearsalId } = params;
 
     // Get the rehearsal with its groups and all students in those groups
     const rehearsal = await prisma.rehearsal.findUnique({
@@ -48,7 +50,7 @@ export async function GET(
     });
 
     if (!rehearsal) {
-      return Response.json({ error: "Rehearsal not found" }, { status: 404 });
+      return NextResponse.json({ error: "Rehearsal not found" }, { status: 404 });
     }
 
     // Get all unique students from all groups
@@ -68,14 +70,14 @@ export async function GET(
         status: "absent" as const,
       }));
 
-    return Response.json({
+    return NextResponse.json({
       present: presentStudents,
       absent: absentStudents,
       totalStudents: allStudents.size,
     });
   } catch (error) {
     console.error("Failed to fetch attendance:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to fetch attendance" },
       { status: 500 }
     );

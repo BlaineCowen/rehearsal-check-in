@@ -1,8 +1,12 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(req: Request, props: { params: Promise<{ rehearsalId: string }> }) {
-  const params = await props.params;
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ rehearsalId: string }> }
+) {
   try {
+    const params = await context.params;
     const { rehearsalId } = params;
 
     const rehearsal = await prisma.rehearsal.update({
@@ -10,10 +14,10 @@ export async function POST(req: Request, props: { params: Promise<{ rehearsalId:
       data: { active: false },
     });
 
-    return Response.json(rehearsal);
+    return NextResponse.json(rehearsal);
   } catch (error) {
     console.error("Failed to end rehearsal:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to end rehearsal" },
       { status: 500 }
     );

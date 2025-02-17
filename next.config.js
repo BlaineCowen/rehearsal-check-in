@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ["@prisma/extension-accelerate"],
+    serverExternalPackages: ["@prisma/extension-accelerate"],
   },
 };
 

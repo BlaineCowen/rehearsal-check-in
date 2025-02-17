@@ -1,44 +1,28 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
 export async function PUT(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ groupId: string }> }
 ) {
-  const session = await auth();
-  const { searchParams } = new URL(req.url);
-  const organizationId = searchParams.get("organizationId");
-  const { groupId } = await context.params;
-
-  if (!organizationId) {
-    return new Response(null, { status: 400 });
-  }
-
-  const checkOrganization = await prisma.user.findUnique({
-    where: {
-      id: session?.user?.id,
-    },
-    select: {
-      organizations: true,
-    },
-  });
-
-  if (organizationId !== checkOrganization?.organizations[0]?.id) {
-    return new Response(null, { status: 401 });
-  }
-
-  const { name, studentIds } = await req.json();
-
   try {
+    const session = await auth();
+    const params = await context.params;
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { name, studentIds } = await req.json();
+
     const updatedGroup = await prisma.group.update({
       where: {
-        id: groupId,
+        id: params.groupId,
       },
       data: {
         name,
         students: {
-          set: [], // First clear all connections
-          connect: studentIds.map((id: string) => ({ id })), // Then connect new ones
+          set: studentIds.map((id: string) => ({ id })),
         },
       },
       include: {
@@ -46,9 +30,9 @@ export async function PUT(
       },
     });
 
-    return Response.json(updatedGroup);
+    return NextResponse.json(updatedGroup);
   } catch (error) {
     console.error("Failed to update group:", error);
-    return new Response(null, { status: 500 });
+    return NextResponse.json({ error: "Failed to update group" }, { status: 500 });
   }
 } 
