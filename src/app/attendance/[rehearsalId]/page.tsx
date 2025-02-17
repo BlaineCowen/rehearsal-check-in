@@ -22,16 +22,12 @@ export default async function RehearsalPage(props: {
     notFound();
   }
 
-  // Prefetch students
-  const students = rehearsal.groups.flatMap((g) => g.students);
-
   return (
     <div className="min-h-screen bg-gray-50">
       <CheckInForm
         rehearsal={rehearsal}
         orgName={rehearsal.organization.name}
         orgImage={rehearsal.organization.imageUrl}
-        students={students}
       />
     </div>
   );

@@ -1,62 +1,37 @@
 "use client";
 
 import { Rehearsal } from "@prisma/client";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { formatDate } from "@/lib/utils";
+import Link from "next/link";
+import { useEndRehearsal } from "@/hooks/useUser";
+import RehearsalCardSkeleton from "@/components/skeletons/RehearsalCardSkeleton";
 
-interface RehearsalCardProps {
-  rehearsal: Rehearsal;
-  onEnd?: (rehearsalId: string) => void;
-}
+export default function RehearsalCard({ rehearsal }: { rehearsal: Rehearsal }) {
+  const { mutate: endRehearsal, isPending } = useEndRehearsal();
 
-export default function RehearsalCard({
-  rehearsal,
-  onEnd,
-}: RehearsalCardProps) {
-  const router = useRouter();
-
-  const handleView = () => {
-    router.push(`/rehearsals/view/${rehearsal.id}`);
-  };
-
-  const handleEnd = async () => {
-    if (!confirm("Are you sure you want to end this rehearsal?")) return;
-
-    try {
-      const res = await fetch(`/api/rehearsals/${rehearsal.id}/end`, {
-        method: "POST",
-      });
-
-      if (!res.ok) throw new Error("Failed to end rehearsal");
-
-      if (onEnd) {
-        onEnd(rehearsal.id);
-      }
-    } catch (error) {
-      console.error("Failed to end rehearsal:", error);
-    }
-  };
+  if (isPending) {
+    return <RehearsalCardSkeleton />;
+  }
 
   return (
-    <Card className="p-6 space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Active Rehearsal</h3>
-        <p className="text-gray-600">{formatDate(new Date(rehearsal.date))}</p>
-      </div>
-
+    <div className="p-6 rounded-xl border bg-green-100">
+      <h3 className="text-xl font-semibold mb-2">Active Rehearsal</h3>
+      <p className="text-gray-600 mb-4">
+        Started at {new Date(rehearsal.date).toLocaleTimeString()}
+      </p>
       <div className="flex gap-2">
-        <Button
-          onClick={handleView}
-          className="flex-1 bg-blue-500 hover:bg-blue-600"
+        <Link
+          href={`/attendance/${rehearsal.id}`}
+          className="inline-block py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           View
-        </Button>
-        <Button onClick={handleEnd} variant="destructive" className="flex-1">
-          End
-        </Button>
+        </Link>
+        <button
+          onClick={() => endRehearsal(rehearsal.id)}
+          className="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          End Rehearsal
+        </button>
       </div>
-    </Card>
+    </div>
   );
 }

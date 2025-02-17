@@ -1,6 +1,6 @@
 "use client";
 
-import { useGroups } from "@/hooks/useUser";
+import { useUser } from "@/hooks/useUser";
 import {
   Card,
   CardHeader,
@@ -14,12 +14,16 @@ import { GroupWithStudents } from "@/types";
 import { Button } from "@mui/material";
 import { Edit } from "lucide-react";
 import { Trash } from "lucide-react";
+import GroupsSkeleton from "@/components/skeletons/GroupsSkeleton";
 
 export default function GroupsPage() {
-  const { data: groups, isLoading } = useGroups();
+  const { data: user, isPending } = useUser();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!groups) return null;
+  if (isPending) {
+    return <GroupsSkeleton />;
+  }
+
+  if (!user?.organizations[0].groups) return null;
 
   const handleDelete = (id: string) => {
     console.log("Deleting group", id);
@@ -37,7 +41,7 @@ export default function GroupsPage() {
         Create Group
       </Button>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {groups.map((group: GroupWithStudents) => (
+        {user?.organizations[0].groups.map((group: GroupWithStudents) => (
           <Card key={group.id} className="relative group">
             <CardHeader>
               <CardTitle>{group.name}</CardTitle>

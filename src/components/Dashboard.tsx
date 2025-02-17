@@ -1,31 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useUser,
-  useStudents,
-  useGroups,
-  useActiveRehearsals,
-} from "@/hooks/useUser";
+import { useUser, useActiveRehearsals } from "@/hooks/useUser";
 import { Rehearsal } from "@prisma/client";
 import RehearsalCard from "@/components/RehearsalCard";
 import { useQueryClient } from "@tanstack/react-query";
+import DashboardSkeleton from "@/components/skeletons/DashboardSkeleton";
+import { useEffect } from "react";
 
 export default function Dashboard() {
-  const { data: user, isLoading: userLoading, error } = useUser();
-  const { data: students } = useStudents();
-  const { data: groups } = useGroups();
-  const { data: activeRehearsals } = useActiveRehearsals();
+  const { data: user, isPending: userLoading, error } = useUser();
+  const organizationId = user?.organizations?.[0]?.id;
+  const { data: activeRehearsals, isPending: rehearsalsLoading } =
+    useActiveRehearsals(organizationId);
   const queryClient = useQueryClient();
+
+  // Prefetch data for other routes
+  useEffect(() => {
+    if (organizationId) {
+      // Prefetch attendance report data
+      queryClient.prefetchQuery({
+        queryKey: ["attendance-report", organizationId],
+        queryFn: async () => {
+          const res = await fetch(
+            `/api/reports/attendance?organizationId=${organizationId}`
+          );
+          if (!res.ok) throw new Error("Failed to fetch report");
+          return res.json();
+        },
+      });
+
+      // Prefetch students data (if you have a students query)
+      queryClient.prefetchQuery({
+        queryKey: ["students", organizationId],
+        queryFn: async () => {
+          const res = await fetch(
+            `/api/students/get-all?organizationId=${organizationId}`
+          );
+          if (!res.ok) throw new Error("Failed to fetch students");
+          return res.json();
+        },
+      });
+
+      // Prefetch groups data (if you have a groups query)
+      queryClient.prefetchQuery({
+        queryKey: ["groups", organizationId],
+        queryFn: async () => {
+          const res = await fetch(
+            `/api/groups?organizationId=${organizationId}`
+          );
+          if (!res.ok) throw new Error("Failed to fetch groups");
+          return res.json();
+        },
+      });
+    }
+  }, [organizationId, queryClient]);
 
   if (error) {
     console.error("User fetch error:", error);
     return <div>Error loading dashboard</div>;
   }
 
-  if (userLoading) {
-    console.log("Loading user data...");
-    return <div>Loading...</div>;
+  if (userLoading || rehearsalsLoading) {
+    return <DashboardSkeleton />;
   }
 
   if (!user) {
@@ -39,15 +76,6 @@ export default function Dashboard() {
   }
 
   const organization = user.organizations[0];
-
-  const handleEndRehearsal = async (rehearsalId: string) => {
-    await fetch("/api/rehearsals/end", {
-      method: "POST",
-      body: JSON.stringify({ rehearsalId }),
-    });
-    // invalidate active rehearsals query
-    queryClient.invalidateQueries({ queryKey: ["activeRehearsals"] });
-  };
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
@@ -64,14 +92,16 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <DashboardCard
           title="Students"
-          description={`${students?.length || 0} students enrolled`}
+          description={`${
+            organization.students?.length || 0
+          } students enrolled`}
           href="students"
           buttonText="View Students"
         />
 
         <DashboardCard
           title="Groups"
-          description={`${groups?.length || 0} active groups`}
+          description={`${organization.groups?.length || 0} active groups`}
           href="groups"
           buttonText="Manage Groups"
         />
@@ -91,11 +121,7 @@ export default function Dashboard() {
           buttonText="Create Report"
         />
         {activeRehearsals?.map((rehearsal: Rehearsal) => (
-          <RehearsalCard
-            key={rehearsal.id}
-            rehearsal={rehearsal}
-            onEnd={handleEndRehearsal}
-          />
+          <RehearsalCard key={rehearsal.id} rehearsal={rehearsal} />
         ))}
       </div>
     </main>
@@ -119,8 +145,58 @@ function DashboardCard({
   altHref?: string;
   accent?: string;
 }) {
+  const { data: user } = useUser();
+  const organizationId = user?.organizations?.[0]?.id;
+  const queryClient = useQueryClient();
+
+  const prefetchData = () => {
+    if (!organizationId) return;
+
+    switch (href) {
+      case "students":
+        queryClient.prefetchQuery({
+          queryKey: ["students", organizationId],
+          queryFn: async () => {
+            const res = await fetch(
+              `/api/students/get-all?organizationId=${organizationId}`
+            );
+            if (!res.ok) throw new Error("Failed to fetch students");
+            return res.json();
+          },
+        });
+        break;
+      case "groups":
+        queryClient.prefetchQuery({
+          queryKey: ["groups", organizationId],
+          queryFn: async () => {
+            const res = await fetch(
+              `/api/groups?organizationId=${organizationId}`
+            );
+            if (!res.ok) throw new Error("Failed to fetch groups");
+            return res.json();
+          },
+        });
+        break;
+      case "reports":
+        queryClient.prefetchQuery({
+          queryKey: ["attendance-report", organizationId],
+          queryFn: async () => {
+            const res = await fetch(
+              `/api/reports/attendance?organizationId=${organizationId}`
+            );
+            if (!res.ok) throw new Error("Failed to fetch report");
+            return res.json();
+          },
+        });
+        break;
+    }
+  };
+
   return (
-    <div className={`p-6 rounded-xl shadow-sm border ${accent}`}>
+    <div
+      className={`p-6 rounded-xl shadow-sm border ${accent}`}
+      onMouseEnter={prefetchData}
+    >
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
       <Link

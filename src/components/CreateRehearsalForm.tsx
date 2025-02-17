@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useGroups } from "@/hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
@@ -12,16 +11,19 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GroupWithStudents } from "@/types";
+import { useUser } from "@/hooks/useUser";
 
 export default function CreateRehearsalForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: groups, isLoading } = useGroups();
+  const { data: user, isPending } = useUser();
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
 
-  if (isLoading) return <div>Loading groups...</div>;
-  if (!groups?.length)
+  if (isPending) return <div>Loading groups...</div>;
+  if (!user?.organizations[0].groups?.length)
     return <div>No groups found. Create some groups first.</div>;
+
+  const groups = user?.organizations[0].groups;
 
   const handleGroupToggle = (groupId: string) => {
     setSelectedGroups((prev) =>

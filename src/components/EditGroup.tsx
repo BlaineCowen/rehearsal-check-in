@@ -2,12 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  useUser,
-  useStudents,
-  useGroups,
-  useOrganization,
-} from "@/hooks/useUser";
+import { useUser } from "@/hooks/useUser";
 import { Student, Group } from "@prisma/client";
 import SelectableStudentTable from "@/components/SelectableStudentTable";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,10 +10,8 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function EditGroup({ groupId }: { groupId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: user } = useUser();
-  const { data: groups } = useGroups();
-  const { data: students } = useStudents();
-  const currentGroup = groups?.find((g: Group) => g.id === groupId);
+  const { data: user, isPending } = useUser();
+  const currentGroup = user?.groups?.find((g: Group) => g.id === groupId);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -26,8 +19,8 @@ export default function EditGroup({ groupId }: { groupId: string }) {
   });
 
   useEffect(() => {
-    if (currentGroup && students) {
-      const groupStudents = students.filter((s: Student) =>
+    if (currentGroup && user?.students) {
+      const groupStudents = user.students.filter((s: Student) =>
         currentGroup.students.some((gs: Student) => gs.id === s.id)
       );
       setFormData({
@@ -35,7 +28,7 @@ export default function EditGroup({ groupId }: { groupId: string }) {
         selectedStudents: groupStudents,
       });
     }
-  }, [currentGroup, students]);
+  }, [currentGroup, user?.students]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +51,7 @@ export default function EditGroup({ groupId }: { groupId: string }) {
     }
   };
 
-  if (!students || !currentGroup) return <div>Loading...</div>;
+  if (!user?.students || !currentGroup) return <div>Loading...</div>;
 
   return (
     <div className="p-4">
@@ -82,7 +75,7 @@ export default function EditGroup({ groupId }: { groupId: string }) {
           </label>
           <div className="rounded-md border">
             <SelectableStudentTable
-              students={students}
+              students={user?.students}
               selectedStudents={formData.selectedStudents}
               onSelectionChange={(selected) =>
                 setFormData((prev) => ({ ...prev, selectedStudents: selected }))

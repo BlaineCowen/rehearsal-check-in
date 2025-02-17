@@ -35,10 +35,23 @@ export default function CheckInForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // check if studentname matches a student
+    const student = students.find((s) => s.studentId === studentId);
+    if (!student) {
+      setMessage({
+        text: `${studentId} not found`,
+        type: "error",
+      });
+      // clear input
+      setStudentId("");
+      inputRef.current?.focus();
+      return;
+    }
     const studentName =
       students.find((s) => s.studentId === studentId)?.firstName +
       " " +
       students.find((s) => s.studentId === studentId)?.lastName;
+
     setMessage({
       text: `Welcome, ${studentName}!`,
       type: "success",
