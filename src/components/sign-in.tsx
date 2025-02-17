@@ -1,17 +1,36 @@
 "use client";
 
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+
 import { signInWithGoogle } from "@/app/actions";
 
-export default function SignIn() {
+export function SignIn() {
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
-    <form action={signInWithGoogle}>
-      <button
-        type="submit"
-        className="bg-blue-500 text-white px-6 py-2 rounded flex items-center gap-2"
-      >
-        <img src="/google.svg" alt="Google" className="w-5 h-5" />
-        Sign in with Google
-      </button>
-    </form>
+    <Button
+      onClick={() => {
+        setIsLoading(true);
+        signInWithGoogle();
+      }}
+      disabled={isLoading}
+      className="w-full max-w-sm flex items-center gap-2"
+    >
+      {isLoading ? (
+        <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-gray-900" />
+      ) : (
+        <Image
+          src="/google.png"
+          alt="Google"
+          width={20}
+          height={20}
+          className="w-5 h-5"
+        />
+      )}
+      <span>Sign in with Google</span>
+    </Button>
   );
 }

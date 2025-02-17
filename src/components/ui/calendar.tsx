@@ -65,7 +65,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: (props) => {
+        Chevron: (props: any) => {
           if (props.orientation === "left") {
             return <ChevronLeftIcon {...props} />;
           }
