@@ -2,21 +2,21 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   req: Request,
-  { params }: { params: { rehearsalId: string } }
+  { params }: { params: { rehearsalId: string;} }
 ) {
   try {
-    const { studentId } = await req.json();
-    const { rehearsalId } = params;
+    const { studentId, rehearsalId, organizationId } = await req.json();
 
     // Find the student and check if they're in any of the rehearsal's groups
     const student = await prisma.student.findFirst({
+      select: {
+        firstName: true,
+        lastName: true,
+        id: true,
+      },
       where: {
-        studentId,
-        groups: {
-          some: {
-            rehearsalId,
-          },
-        },
+        organizationId: organizationId,
+        studentId: studentId,
       },
     });
 
@@ -39,8 +39,8 @@ export async function POST(
 
     if (existingAttendance) {
       return Response.json(
-        { error: "Student already checked in" },
-        { status: 400 }
+        { message: `${student.firstName} ${student.lastName} is already checked in` },
+        { status: 200 }
       );
     }
 

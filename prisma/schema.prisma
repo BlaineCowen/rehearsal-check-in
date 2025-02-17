@@ -103,6 +103,7 @@ model Rehearsal {
   date           DateTime
   userId         String
   organizationId String
+  active         Boolean      @default(true)
   createdAt      DateTime     @default(now())
   attendance     Attendance[]
   createdBy      User         @relation("UserRehearsals", fields: [userId], references: [id])

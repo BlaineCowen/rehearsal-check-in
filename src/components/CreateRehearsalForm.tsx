@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGroups } from "@/hooks/useUser";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardHeader,
@@ -14,6 +15,7 @@ import { GroupWithStudents } from "@/types";
 
 export default function CreateRehearsalForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: groups, isLoading } = useGroups();
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
 
@@ -57,7 +59,9 @@ export default function CreateRehearsalForm() {
 
       if (res.ok) {
         const rehearsal = await res.json();
-        router.push(`/rehearsals/${rehearsal.id}`);
+        await queryClient.invalidateQueries({ queryKey: ["activeRehearsals"] });
+        window.open(`/attendance/${rehearsal.id}`, "_blank");
+        router.push("/");
       }
     } catch (error) {
       console.error("Failed to create rehearsal:", error);

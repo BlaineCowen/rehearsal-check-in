@@ -54,7 +54,7 @@ export default function EditGroup({ groupId }: { groupId: string }) {
     );
     if (res.ok) {
       await queryClient.invalidateQueries({ queryKey: ["groups"] });
-      router.push("/groups");
+      router.push("/");
     }
   };
 

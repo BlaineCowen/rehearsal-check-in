@@ -26,7 +26,9 @@ export function useUser() {
 
 export function useOrganization() {
   const { data: user } = useUser();
-  return user?.organizations[0];
+  // get organization from user
+  const organization = user?.organizations.find((org: Organization) => org.id === user?.organizations[0].id);
+  return organization;
 }
 
 export function useStudents() {
@@ -53,5 +55,23 @@ export function useGroups() {
       return res.json();
     },
     enabled: !!organization?.id,
+  });
+} 
+
+export function useActiveRehearsals() {
+  const organization = useOrganization();
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ["activeRehearsals", organization?.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/rehearsals/active?organizationId=${organization?.id}`);
+      if (!res.ok) throw new Error("Failed to fetch active rehearsals");
+      return res.json();
+    },
+    enabled: !!organization?.id,
+    staleTime: 0, // Always refetch on mount
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 } 

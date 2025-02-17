@@ -186,3 +186,24 @@ export async function updateStudents(students: Student[]) {
     })
   ])
 } 
+
+export async function getActiveRehearsals() {
+  const session = await auth();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { organizations: true },
+  });
+
+  if (!user?.organizations[0]?.id) throw new Error("Organization not found");
+
+  const rehearsals = await prisma.rehearsal.findMany({
+    where: {
+      organizationId: user.organizations[0].id,
+      active: true,
+    },
+  });
+
+  return rehearsals;
+}

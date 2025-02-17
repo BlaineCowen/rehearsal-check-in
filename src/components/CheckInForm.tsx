@@ -41,7 +41,11 @@ export default function CheckInForm({
       const res = await fetch(`/api/rehearsals/${rehearsal.id}/check-in`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId: studentId.trim() }),
+        body: JSON.stringify({
+          studentId: studentId.trim(),
+          rehearsalId: rehearsal.id,
+          organizationId: rehearsal.organizationId,
+        }),
       });
 
       const data = await res.json();

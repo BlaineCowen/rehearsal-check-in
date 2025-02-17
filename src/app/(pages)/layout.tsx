@@ -1,14 +1,20 @@
 "use client";
 
-import Dashboard from "@/components/Dashboard";
 import Navbar from "@/components/Navbar";
+
 import { useSession } from "next-auth/react";
-export default function Home() {
+
+export default function PagesLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { data: session } = useSession();
+
   return (
-    <div>
+    <div className="min-h-screen bg-slate-900">
       <Navbar orgName={session?.user?.organization?.name || ""} />
-      <Dashboard />
+      {children}
     </div>
   );
 }

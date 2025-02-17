@@ -27,10 +27,8 @@ export default async function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers session={session}>
-          <Navbar orgName={session?.user?.organization?.name || ""} />
-          <main className="pt-40">{children}</main>
+          <main className="pt-6">{children}</main>
         </Providers>
-        <div className="flex w-full justify-center pt-16"></div>
       </body>
     </html>
   );

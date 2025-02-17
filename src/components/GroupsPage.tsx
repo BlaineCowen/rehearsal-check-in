@@ -31,7 +31,7 @@ export default function GroupsPage() {
         variant="contained"
         color="primary"
         onClick={() => {
-          window.location.href = "/groups/create";
+          window.location.href = "groups/create";
         }}
       >
         Create Group
@@ -53,7 +53,7 @@ export default function GroupsPage() {
                 color="primary"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.location.href = `/groups/${group.id}`;
+                  window.location.href = `groups/${group.id}`;
                 }}
               >
                 <Edit size={16} className="mr-1" />

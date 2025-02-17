@@ -101,7 +101,7 @@ function CreateGroupForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/groups")}
+            onClick={() => router.push("groups")}
           >
             Cancel
           </Button>

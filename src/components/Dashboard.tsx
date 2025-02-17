@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useUser, useStudents, useGroups } from "@/hooks/useUser";
+import {
+  useUser,
+  useStudents,
+  useGroups,
+  useActiveRehearsals,
+} from "@/hooks/useUser";
+import { Rehearsal } from "@prisma/client";
+import RehearsalCard from "@/components/RehearsalCard";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const { data: user, isLoading: userLoading, error } = useUser();
   const { data: students } = useStudents();
   const { data: groups } = useGroups();
+  const { data: activeRehearsals } = useActiveRehearsals();
+  const queryClient = useQueryClient();
 
   if (error) {
     console.error("User fetch error:", error);
@@ -24,11 +34,20 @@ export default function Dashboard() {
   }
 
   if (!user.organizations?.[0]) {
-    window.location.href = "/create-org";
+    window.location.href = "create-org";
     return null;
   }
 
   const organization = user.organizations[0];
+
+  const handleEndRehearsal = async (rehearsalId: string) => {
+    await fetch("/api/rehearsals/end", {
+      method: "POST",
+      body: JSON.stringify({ rehearsalId }),
+    });
+    // invalidate active rehearsals query
+    queryClient.invalidateQueries({ queryKey: ["activeRehearsals"] });
+  };
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
@@ -46,21 +65,21 @@ export default function Dashboard() {
         <DashboardCard
           title="Students"
           description={`${students?.length || 0} students enrolled`}
-          href="/students"
+          href="students"
           buttonText="View Students"
         />
 
         <DashboardCard
           title="Groups"
           description={`${groups?.length || 0} active groups`}
-          href="/groups"
+          href="groups"
           buttonText="Manage Groups"
         />
 
         <DashboardCard
           title="New Rehearsal"
           description="Start a new rehearsal session"
-          href="/rehearsals/new"
+          href="rehearsals/new"
           buttonText="Start Rehearsal"
           accent="bg-blue-100"
         />
@@ -68,9 +87,16 @@ export default function Dashboard() {
         <DashboardCard
           title="Reports"
           description="Generate attendance reports"
-          href="/reports"
+          href="reports"
           buttonText="Create Report"
         />
+        {activeRehearsals?.map((rehearsal: Rehearsal) => (
+          <RehearsalCard
+            key={rehearsal.id}
+            rehearsal={rehearsal}
+            onEnd={handleEndRehearsal}
+          />
+        ))}
       </div>
     </main>
   );
@@ -81,12 +107,16 @@ function DashboardCard({
   description,
   href,
   buttonText,
+  altButtonText,
+  altHref,
   accent = "bg-white",
 }: {
   title: string;
   description: string;
   href: string;
   buttonText: string;
+  altButtonText?: string;
+  altHref?: string;
   accent?: string;
 }) {
   return (
@@ -99,6 +129,14 @@ function DashboardCard({
       >
         {buttonText}
       </Link>
+      {altButtonText && (
+        <Link
+          href={altHref || ""}
+          className="inline-block w-full text-center py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          {altButtonText}
+        </Link>
+      )}
     </div>
   );
 }
