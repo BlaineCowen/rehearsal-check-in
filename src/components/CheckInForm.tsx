@@ -26,6 +26,7 @@ export default function CheckInForm({
     type: "success" | "error";
   } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const students = rehearsal.groups.flatMap((g) => g.students);
 
   // Focus input on mount and after each submission
   useEffect(() => {
@@ -34,6 +35,14 @@ export default function CheckInForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const studentName =
+      students.find((s) => s.studentId === studentId)?.firstName +
+      " " +
+      students.find((s) => s.studentId === studentId)?.lastName;
+    setMessage({
+      text: `Welcome, ${studentName}!`,
+      type: "success",
+    });
 
     if (!studentId.trim()) return;
 
@@ -51,10 +60,7 @@ export default function CheckInForm({
       const data = await res.json();
 
       if (res.ok) {
-        setMessage({
-          text: `Welcome, ${data.student.firstName}!`,
-          type: "success",
-        });
+        console.log(data);
       } else {
         setMessage({ text: data.error || "Student not found", type: "error" });
       }

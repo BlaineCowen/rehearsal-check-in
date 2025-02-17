@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 
 export async function PUT(
   req: Request,
-  context: { params: { groupId: string } }
+  context: { params: Promise<{ groupId: string }> }
 ) {
   const session = await auth();
   const { searchParams } = new URL(req.url);

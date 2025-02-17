@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { rehearsalId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ rehearsalId: string }> }) {
+  const params = await props.params;
   try {
     const { rehearsalId } = params;
 

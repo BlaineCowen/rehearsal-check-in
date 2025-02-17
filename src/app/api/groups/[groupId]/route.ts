@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { groupId: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ groupId: string }> }) {
+  const params = await props.params;
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

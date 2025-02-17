@@ -4,11 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import RehearsalAttendance from "@/components/RehearsalAttendance";
 
-export default async function RehearsalViewPage({
-  params,
-}: {
-  params: { rehearsalId: string };
-}) {
+export default async function RehearsalViewPage(
+  props: {
+    params: Promise<{ rehearsalId: string }>;
+  }
+) {
+  const params = await props.params;
   const rehearsal = await prisma.rehearsal.findUnique({
     where: { id: params.rehearsalId },
     include: {
