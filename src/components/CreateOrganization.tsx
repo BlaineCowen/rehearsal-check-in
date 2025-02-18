@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { createOrganization } from "@/app/actions";
 import { useState } from "react";
+import { useUser } from "@/hooks/useUser";
 
 export default function CreateOrganization() {
   const router = useRouter();
+  const { refetch } = useUser();
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,6 +17,7 @@ export default function CreateOrganization() {
     try {
       const formData = new FormData(e.currentTarget as HTMLFormElement);
       await createOrganization(formData);
+      await refetch();
       router.push("/");
     } catch (err: any) {
       setError(err.message);

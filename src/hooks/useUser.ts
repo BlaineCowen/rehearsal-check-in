@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { User, Organization, Student, Group, Rehearsal } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 type UserWithOrganization = User & {
   organizations: (Organization & {
@@ -12,52 +14,32 @@ type UserWithOrganization = User & {
 };
 
 export function useUser() {
-  return useQuery({
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const userQuery = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
       const res = await fetch("/api/user/get-current");
       if (!res.ok) throw new Error("Failed to fetch user");
       return res.json();
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: false,
   });
+
+  useEffect(() => {
+    if (userQuery.data && !userQuery.data.organizations?.[0]) {
+      router.replace("/create-org");
+    }
+  }, [userQuery.data, router]);
+
+  return {
+    ...userQuery,
+    refetch: () => {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      return userQuery.refetch();
+    }
+  };
 }
-
-
-// export function useOrganization() {
-//   const { data: user } = useUser();
-//   // get organization from user
-//   const organization = user?.organizations.find((org: Organization) => org.id === user?.organizations[0].id);
-//   return organization;
-// }
-
-// export function useStudents() {
-//   const organization = useOrganization();
-//   return useQuery({
-//     queryKey: ["students", organization?.id],
-//     queryFn: async () => {
-//       const res = await fetch(`/api/students/get-all?organizationId=${organization?.id}`);
-//       if (!res.ok) throw new Error("Failed to fetch students");
-//       return res.json();
-//     },
-//     enabled: !!organization?.id,
-//   });
-// }
-
-// export function useGroups() {
-//   const organization = useOrganization();
-  
-//   return useQuery({
-//     queryKey: ["groups", organization?.id],
-//     queryFn: async () => {
-//       const res = await fetch(`/api/groups?organizationId=${organization?.id}`);
-//       if (!res.ok) throw new Error("Failed to fetch groups");
-//       return res.json();
-//     },
-//     enabled: !!organization?.id,
-//   });
-// } 
 
 export function useActiveRehearsals(organizationId: string | undefined) {
   return useQuery({

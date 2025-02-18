@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import Attendance_Page from "../app/attendance_page";
 import { QueryClient } from "@tanstack/react-query";
 
@@ -41,6 +42,12 @@ function Navbar({ orgName }: { orgName: string }) {
             <Link href={{ pathname: "../", query: { name: "groups" } }}>
               groups
             </Link>
+          </Button>
+          <Button
+            color="inherit"
+            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+          >
+            Sign Out
           </Button>
         </Toolbar>
       </div>

@@ -10,6 +10,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "database",
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Always redirect to home after sign in
+      return baseUrl;
+    },
     async session({ session, user }) {
       const userWithOrg = await prisma.user.findUnique({
         where: { id: user.id },

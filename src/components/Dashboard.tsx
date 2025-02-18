@@ -7,6 +7,7 @@ import RehearsalCard from "@/components/RehearsalCard";
 import { useQueryClient } from "@tanstack/react-query";
 import DashboardSkeleton from "@/components/skeletons/DashboardSkeleton";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const { data: user, isPending: userLoading, error } = useUser();
@@ -68,11 +69,6 @@ export default function Dashboard() {
   if (!user) {
     console.log("No user data");
     return <div>No user found</div>;
-  }
-
-  if (!user.organizations?.[0]) {
-    window.location.href = "create-org";
-    return null;
   }
 
   const organization = user.organizations[0];
