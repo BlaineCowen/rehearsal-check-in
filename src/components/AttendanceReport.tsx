@@ -17,6 +17,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Rehearsal, Student, Attendance, Group } from "@prisma/client";
 import { useState } from "react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,10 @@ import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
 import ReportsSkeleton from "@/components/skeletons/ReportsSkeleton";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
+import { isWithinInterval, parseISO } from "date-fns";
+import React from "react";
 
 type StudentAttendance = {
   student: {
@@ -44,6 +49,20 @@ type StudentAttendance = {
   attended: number;
   absent: number;
   attendanceRate: number;
+};
+
+// Define the nested types we get from the API
+type RehearsalWithRelations = Rehearsal & {
+  groups: (Group & {
+    students: Student[];
+  })[];
+  attendance: (Attendance & {
+    student: Student;
+  })[];
+};
+
+type ApiResponse = {
+  rehearsals: RehearsalWithRelations[];
 };
 
 function SortableHeader({
@@ -71,7 +90,10 @@ export default function AttendanceReport({
   organizationId: string;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [date, setDate] = useState<DateRange | undefined>();
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // First day of current month
+    to: new Date(), // Today
+  });
   const [tempDate, setTempDate] = useState<DateRange | undefined>();
 
   const columns: ColumnDef<StudentAttendance>[] = [
@@ -82,12 +104,16 @@ export default function AttendanceReport({
       ),
     },
     {
+      accessorKey: "student.firstName",
+      header: ({ column }) => (
+        <SortableHeader column={column}>First Name</SortableHeader>
+      ),
+    },
+    {
       accessorKey: "student.lastName",
       header: ({ column }) => (
-        <SortableHeader column={column}>Name</SortableHeader>
+        <SortableHeader column={column}>Last Name</SortableHeader>
       ),
-      cell: ({ row }) =>
-        `${row.original.student.firstName} ${row.original.student.lastName}`,
     },
     {
       accessorKey: "totalRehearsals",
@@ -116,23 +142,77 @@ export default function AttendanceReport({
     },
   ];
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["attendance-report", organizationId, date?.from, date?.to],
+  const { data, isPending } = useQuery<ApiResponse>({
+    queryKey: ["attendance-report", organizationId],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        organizationId,
-        ...(date?.from && { from: date.from.toISOString() }),
-        ...(date?.to && { to: date.to.toISOString() }),
-      });
-
-      const res = await fetch(`/api/reports/attendance?${params}`);
+      const res = await fetch(
+        `/api/reports/attendance?organizationId=${organizationId}`
+      );
       if (!res.ok) throw new Error("Failed to fetch report");
       return res.json();
     },
   });
 
+  // Filter rehearsals based on selected date range
+  const filteredRehearsals = React.useMemo(() => {
+    if (!data?.rehearsals) return [];
+
+    return data.rehearsals.filter((rehearsal) => {
+      // Ensure we have valid dates to compare
+      const rehearsalDate = new Date(rehearsal.date);
+      const fromDate = date?.from ? new Date(date.from) : null;
+      const toDate = date?.to ? new Date(date.to) : null;
+
+      if (!fromDate) return true; // Show all if no date filter
+
+      if (toDate) {
+        return isWithinInterval(rehearsalDate, {
+          start: fromDate,
+          end: toDate,
+        });
+      }
+
+      // If only from date is selected, show rehearsals on or after that date
+      return rehearsalDate >= fromDate;
+    });
+  }, [data?.rehearsals, date]);
+
+  // Calculate attendance statistics
+  const attendanceStats = React.useMemo(() => {
+    if (!filteredRehearsals.length) return [];
+
+    // Group by student and calculate stats
+    const studentStats = new Map();
+
+    filteredRehearsals.forEach((rehearsal) => {
+      rehearsal.groups.forEach((group) => {
+        group.students.forEach((student) => {
+          const stats = studentStats.get(student.id) || {
+            student,
+            totalRehearsals: 0,
+            attended: 0,
+            absent: 0,
+            attendanceRate: 0,
+          };
+
+          stats.totalRehearsals++;
+          if (rehearsal.attendance.some((a) => a.studentId === student.id)) {
+            stats.attended++;
+          } else {
+            stats.absent++;
+          }
+          stats.attendanceRate = (stats.attended / stats.totalRehearsals) * 100;
+
+          studentStats.set(student.id, stats);
+        });
+      });
+    });
+
+    return Array.from(studentStats.values());
+  }, [filteredRehearsals]);
+
   const table = useReactTable({
-    data: data?.students || [],
+    data: attendanceStats,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -140,7 +220,7 @@ export default function AttendanceReport({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  if (isLoading) {
+  if (isPending) {
     return <ReportsSkeleton />;
   }
 
@@ -177,39 +257,20 @@ export default function AttendanceReport({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-slate-900" align="start">
                 <div className="flex flex-col">
-                  <Calendar
-                    initialFocus
+                  <DayPicker
+                    fixedWeeks
                     mode="range"
-                    defaultMonth={tempDate?.from}
-                    selected={tempDate}
-                    onSelect={setTempDate}
                     numberOfMonths={2}
-                    classNames={{
-                      months: "flex space-x-4",
-                      month: "space-y-4",
-                      caption: "flex justify-center pt-1 relative items-center",
-                      caption_label: "text-sm font-medium text-white",
-                      nav: "space-x-1 flex items-center",
-                      nav_button:
-                        "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-white",
-                      nav_button_previous: "absolute left-1",
-                      nav_button_next: "absolute right-1",
-                      table: "w-full border-collapse space-y-1",
-                      head_row: "flex",
-                      head_cell:
-                        "text-slate-400 rounded-md w-8 font-normal text-[0.8rem]",
-                      row: "flex w-full mt-2",
-                      cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
-                      day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-800 text-white",
-                      day_range_end: "rounded-r-md",
-                      day_range_start: "rounded-l-md",
-                      day_selected:
-                        "bg-blue-500 text-white hover:bg-blue-600 focus:bg-blue-500",
-                      day_today: "bg-slate-800 text-white",
-                      day_outside: "text-slate-500 opacity-50",
-                      day_disabled: "text-slate-500 opacity-50",
-                      day_range_middle: "aria-selected:bg-blue-800/50",
-                      day_hidden: "invisible",
+                    selected={tempDate}
+                    onSelect={(value) => {
+                      if (!value) {
+                        setTempDate(undefined);
+                        return;
+                      }
+                      setTempDate({
+                        from: value.from ? new Date(value.from) : undefined,
+                        to: value.to ? new Date(value.to) : undefined,
+                      });
                     }}
                   />
                   <div className="flex items-center justify-end gap-2 p-3 border-t border-slate-700">
@@ -225,7 +286,7 @@ export default function AttendanceReport({
                     </Button>
                     <Button
                       size="sm"
-                      disabled={!tempDate?.from || !tempDate?.to}
+                      disabled={!tempDate?.from}
                       onClick={() => {
                         setDate(tempDate);
                       }}

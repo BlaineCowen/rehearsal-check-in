@@ -11,15 +11,24 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const organizationId = searchParams.get("organizationId");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
 
     if (!organizationId) {
       return NextResponse.json({ error: "Missing organizationId" }, { status: 400 });
     }
 
+    // Get all completed rehearsals with attendance data
     const rehearsals = await prisma.rehearsal.findMany({
       where: {
         organizationId,
         active: false,
+        ...(from && to && {
+          date: {
+            gte: new Date(from),
+            lte: new Date(to),
+          },
+        }),
       },
       include: {
         groups: {
@@ -38,7 +47,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(rehearsals);
+    // Transform data to include dates
+    const rehearsalsWithDates = rehearsals.map(rehearsal => ({
+      ...rehearsal,
+      date: rehearsal.date.toISOString(),
+    }));
+
+    return NextResponse.json({ rehearsals: rehearsalsWithDates });
   } catch (error) {
     console.error("Failed to fetch attendance report:", error);
     return NextResponse.json(

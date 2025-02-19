@@ -3,7 +3,7 @@ import React from "react";
 import { useState } from "react";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -19,16 +19,27 @@ function Navbar({ orgName }: { orgName: string }) {
 
   return (
     <div className={orgName}>
-      <div className="h-full">
+      <div className="h-full bg-base-300 rounded-sm shadow-md">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            className="text-base-content"
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1 }}
+          >
             Easy Attendance
           </Typography>
-          <Button color="inherit" onClick={() => handleButtonClick("")}>
+          <Button
+            color="info"
+            variant="outline"
+            className="mx-2"
+            onClick={() => handleButtonClick("")}
+          >
             <Link href={{ pathname: "../", query: { name: "" } }}>Home</Link>
           </Button>
           <Button
-            color="inherit"
+            variant="outline"
+            className="mx-2"
             onClick={() => handleButtonClick("Attendance")}
           >
             <Link href={{ pathname: "../", query: { name: "students" } }}>
@@ -36,7 +47,8 @@ function Navbar({ orgName }: { orgName: string }) {
             </Link>
           </Button>
           <Button
-            color="inherit"
+            variant="outline"
+            className="mx-2"
             onClick={() => handleButtonClick("Red Rhythm")}
           >
             <Link href={{ pathname: "../", query: { name: "groups" } }}>
@@ -44,7 +56,8 @@ function Navbar({ orgName }: { orgName: string }) {
             </Link>
           </Button>
           <Button
-            color="inherit"
+            variant="outline"
+            className="mx-2"
             onClick={() => signOut({ callbackUrl: "/auth/signin" })}
           >
             Sign Out

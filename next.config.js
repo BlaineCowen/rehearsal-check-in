@@ -10,6 +10,11 @@ const nextConfig = {
         hostname: "www.google.com",
         pathname: "/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+        port: "",
+      },
     ],
   },
 };

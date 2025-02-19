@@ -3,17 +3,16 @@ import type { NextRequest } from "next/server";
 import { auth } from "@/auth";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
+  const path = request.nextUrl.pathname;
 
-  if (request.nextUrl.pathname.startsWith("/api")) {
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Allow check-in routes without authentication
+  if (path.includes('/api/rehearsals') && path.includes('/check-in')) {
     return NextResponse.next();
   }
 
-  if (!session && !request.nextUrl.pathname.startsWith("/auth")) {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   return NextResponse.next();
@@ -21,8 +20,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-
-    
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/dashboard/:path*",
+    "/api/:path*",
+    "/rehearsals/:path*",
+    "/groups/:path*",
+    "/students/:path*",
   ],
 };

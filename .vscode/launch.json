@@ -20,7 +20,10 @@
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/next",
         "args": ["dev"],
         "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
+        "internalConsoleOptions": "neverOpen",
+        "sourceMaps": true,
+        "skipFiles": ["node_modules/**"]
+        
       },
       {
         "name": "Next.js: debug client-side (Firefox)",

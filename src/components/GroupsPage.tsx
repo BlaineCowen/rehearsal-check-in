@@ -11,7 +11,7 @@ import {
 import Link from "next/link";
 
 import { GroupWithStudents } from "@/types";
-import { Button } from "@mui/material";
+import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { Trash } from "lucide-react";
 import GroupsSkeleton from "@/components/skeletons/GroupsSkeleton";
@@ -32,15 +32,14 @@ export default function GroupsPage() {
   return (
     <div className="p-8">
       <Button
-        variant="contained"
         color="primary"
         onClick={() => {
           window.location.href = "groups/create";
         }}
       >
-        Create Group
+        Create New Group
       </Button>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {user?.organizations[0].groups.map((group: GroupWithStudents) => (
           <Card key={group.id} className="relative group">
             <CardHeader>
@@ -52,9 +51,6 @@ export default function GroupsPage() {
 
             <CardContent>
               <Button
-                variant="contained"
-                size="small"
-                color="primary"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = `groups/${group.id}`;
@@ -65,13 +61,12 @@ export default function GroupsPage() {
               </Button>
 
               <Button
-                variant="contained"
-                size="small"
-                color="error"
+                variant="destructive"
                 onClick={(e) => {
                   e.preventDefault();
                   handleDelete(group.id);
                 }}
+                className="float-right"
               >
                 <Trash size={16} className="mr-1" />
                 Delete

@@ -11,7 +11,11 @@ export default function EditGroup({ groupId }: { groupId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: user, isPending } = useUser();
-  const currentGroup = user?.groups?.find((g: Group) => g.id === groupId);
+  const organization = user?.organizations?.[0];
+  const currentGroup = organization?.groups?.find(
+    (g: Group) => g.id === groupId
+  );
+  const students = organization?.students;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,8 +23,8 @@ export default function EditGroup({ groupId }: { groupId: string }) {
   });
 
   useEffect(() => {
-    if (currentGroup && user?.students) {
-      const groupStudents = user.students.filter((s: Student) =>
+    if (currentGroup && students) {
+      const groupStudents = students.filter((s: Student) =>
         currentGroup.students.some((gs: Student) => gs.id === s.id)
       );
       setFormData({
@@ -28,12 +32,14 @@ export default function EditGroup({ groupId }: { groupId: string }) {
         selectedStudents: groupStudents,
       });
     }
-  }, [currentGroup, user?.students]);
+  }, [currentGroup, students]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!organization?.id) return;
+
     const res = await fetch(
-      `/api/groups/${groupId}/update?organizationId=${user?.organizations[0]?.id}`,
+      `/api/groups/${groupId}/update?organizationId=${organization.id}`,
       {
         method: "PUT",
         headers: {
@@ -46,12 +52,12 @@ export default function EditGroup({ groupId }: { groupId: string }) {
       }
     );
     if (res.ok) {
-      await queryClient.invalidateQueries({ queryKey: ["groups"] });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push("/");
     }
   };
 
-  if (!user?.students || !currentGroup) return <div>Loading...</div>;
+  if (isPending || !students || !currentGroup) return <div>Loading...</div>;
 
   return (
     <div className="p-4">
@@ -75,7 +81,7 @@ export default function EditGroup({ groupId }: { groupId: string }) {
           </label>
           <div className="rounded-md border">
             <SelectableStudentTable
-              students={user?.students}
+              students={students}
               selectedStudents={formData.selectedStudents}
               onSelectionChange={(selected) =>
                 setFormData((prev) => ({ ...prev, selectedStudents: selected }))

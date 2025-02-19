@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditableDataTableProps<TData> {
   initialData: TData[];
@@ -43,6 +45,8 @@ interface EditableDataTableProps<TData> {
   ) => Promise<void>;
   onRowDelete: (rowIndex: number) => Promise<void>;
   onDataChange: (data: TData[]) => void;
+  onSelectionChange?: (selectedRows: TData[]) => void;
+  organizationId: string;
 }
 
 export default function EditableDataTable<TData extends { id: string }>({
@@ -51,6 +55,8 @@ export default function EditableDataTable<TData extends { id: string }>({
   onRowUpdate,
   onRowDelete,
   onDataChange,
+  onSelectionChange,
+  organizationId,
 }: EditableDataTableProps<TData>) {
   const [data, setData] = useState<TData[]>(initialData || []);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -60,14 +66,53 @@ export default function EditableDataTable<TData extends { id: string }>({
   const [pendingRow, setPendingRow] = useState<Partial<TData> & { id: string }>(
     {} as Partial<TData> & { id: string }
   );
+  const [selectedRows, setSelectedRows] = useState<TData[]>([]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setData(initialData || []);
   }, [initialData]);
 
+  const selectionColumn: ColumnDef<TData> = {
+    id: "select",
+    header: ({ table }) => (
+      <div className="w-[40px] px-2">
+        <Checkbox
+          checked={selectedRows.length === data.length}
+          onCheckedChange={(value) => {
+            const newSelection = value ? [...data] : [];
+            setSelectedRows(newSelection);
+            onSelectionChange?.(newSelection);
+          }}
+          aria-label="Select all"
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="w-[40px] px-2">
+        <Checkbox
+          checked={selectedRows.some((r) => r.id === row.original.id)}
+          onCheckedChange={(checked) => {
+            const newSelection = checked
+              ? [...selectedRows, row.original]
+              : selectedRows.filter((r) => r.id !== row.original.id);
+            setSelectedRows(newSelection);
+            onSelectionChange?.(newSelection);
+          }}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    maxSize: 40,
+  };
+
+  const allColumns = [selectionColumn, ...columns];
+
   const table = useReactTable({
     data: data || [],
-    columns,
+    columns: allColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -170,14 +215,64 @@ export default function EditableDataTable<TData extends { id: string }>({
     onDataChange([...data, ...newData]);
   };
 
+  const handleDelete = async (rows: TData[]) => {
+    try {
+      // Send delete request
+      await fetch("/api/students/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentIds: rows.map((row) => row.id),
+          organizationId,
+        }),
+      });
+
+      // Update local state
+      const newData = data.filter((d) => !rows.some((r) => r.id === d.id));
+      setData(newData);
+      onDataChange(newData);
+
+      // Invalidate queries
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+
+      setSelectedRows([]);
+    } catch (error) {
+      console.error("Failed to delete students:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete students",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold mb-4">Editable DataTable</h1>
-      <Input
-        placeholder="Search..."
-        value={globalFilter ?? ""}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-      />
+      <h1 className="text-2xl font-bold text-base-content mb-4">
+        Add/Delete Students
+      </h1>
+      <h2>Copy and paste as multiple students into the bottom row</h2>
+      <div className="flex items-center justify-between py-4">
+        <Input
+          placeholder="Search..."
+          value={globalFilter ?? ""}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="w-1/2"
+        />
+        {selectedRows.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-base-content">
+              {selectedRows.length} selected
+            </span>
+            <Button
+              variant="destructive"
+              onClick={() => handleDelete(selectedRows)}
+            >
+              Delete Selected
+            </Button>
+          </div>
+        )}
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -196,7 +291,7 @@ export default function EditableDataTable<TData extends { id: string }>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="text-base-content">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
@@ -205,7 +300,7 @@ export default function EditableDataTable<TData extends { id: string }>({
                   className={!isRowComplete(row.original) ? "bg-red-100" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-base-content">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -215,27 +310,20 @@ export default function EditableDataTable<TData extends { id: string }>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
+              <TableRow></TableRow>
             )}
             <TableRow
               ref={blankRowRef}
               onPaste={handlePaste}
               className="bg-muted/50"
             >
+              <TableCell className="w-[40px]" />
               {columns.map((column: ColumnDef<TData>) => (
                 // @ts-ignore
                 <TableCell key={column.accessorKey as string}>
                   <Input
                     // @ts-ignore
                     placeholder={`Enter ${column.accessorKey as string}`}
-                    // @ts-ignore
                     value={
                       (pendingRow[
                         // @ts-ignore
@@ -257,59 +345,6 @@ export default function EditableDataTable<TData extends { id: string }>({
           </TableBody>
         </Table>
         <Toaster />
-      </div>
-
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Rehearsal } from "@prisma/client";
 import RehearsalCard from "@/components/RehearsalCard";
 import { useQueryClient } from "@tanstack/react-query";
 import DashboardSkeleton from "@/components/skeletons/DashboardSkeleton";
+import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -15,7 +16,7 @@ export default function Dashboard() {
   const { data: activeRehearsals, isPending: rehearsalsLoading } =
     useActiveRehearsals(organizationId);
   const queryClient = useQueryClient();
-
+  const router = useRouter();
   // Prefetch data for other routes
   useEffect(() => {
     if (organizationId) {
@@ -74,12 +75,13 @@ export default function Dashboard() {
   const organization = user.organizations[0];
 
   return (
-    <main className="p-8 max-w-6xl mx-auto">
+    <main className="p-8 max-w-6xl mx-auto bg-nuetral-content">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">{organization.name} Dashboard</h1>
+
         <Link
-          href="/settings"
-          className="px-4 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
+          href={`/org/${organization.id}/update`}
+          className="border border-base-content px-4 py-2 rounded-md"
         >
           Organization Settings
         </Link>
@@ -103,18 +105,17 @@ export default function Dashboard() {
         />
 
         <DashboardCard
-          title="New Rehearsal"
-          description="Start a new rehearsal session"
-          href="rehearsals/new"
-          buttonText="Start Rehearsal"
-          accent="bg-blue-100"
-        />
-
-        <DashboardCard
           title="Reports"
           description="Generate attendance reports"
           href="reports"
           buttonText="Create Report"
+        />
+        <DashboardCard
+          title="New Rehearsal"
+          description="Start a new rehearsal session"
+          href="rehearsals/new"
+          buttonText="Start Rehearsal"
+          accent="primary"
         />
         {activeRehearsals?.map((rehearsal: Rehearsal) => (
           <RehearsalCard key={rehearsal.id} rehearsal={rehearsal} />
@@ -131,7 +132,7 @@ function DashboardCard({
   buttonText,
   altButtonText,
   altHref,
-  accent = "bg-white",
+  accent = "base-200",
 }: {
   title: string;
   description: string;
@@ -190,21 +191,23 @@ function DashboardCard({
 
   return (
     <div
-      className={`p-6 rounded-xl shadow-sm border ${accent}`}
+      className={`p-6 rounded-xl shadow-sm border border-${accent} bg-base-200  `}
       onMouseEnter={prefetchData}
     >
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
+      <h3 className={`text-xl font-semibold mb-2 text-bg-base-200-content`}>
+        {title}
+      </h3>
+      <p className={`text-bg-base-200-content mb-4`}>{description}</p>
       <Link
         href={href}
-        className="inline-block w-full text-center py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        className="inline-block w-full text-center py-2 px-4 bg-primary text-primary-content rounded-lg hover:bg-primary/80 transition-colors"
       >
         {buttonText}
       </Link>
       {altButtonText && (
         <Link
           href={altHref || ""}
-          className="inline-block w-full text-center py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          className="inline-block w-full text-center py-2 px-4 bg-secondary text-secondary-content rounded-lg hover:bg-secondary/80 transition-colors"
         >
           {altButtonText}
         </Link>

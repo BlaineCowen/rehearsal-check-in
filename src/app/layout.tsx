@@ -27,7 +27,7 @@ export default async function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers session={session}>
-          <main className="pt-6">{children}</main>
+          <main className="h-screen bg-nuetral">{children}</main>
         </Providers>
       </body>
     </html>

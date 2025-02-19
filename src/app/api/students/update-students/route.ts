@@ -58,6 +58,20 @@ export async function POST(req: NextRequest) {
       })
     );
 
+    // if "All" group exists, update the group
+    const allGroup = await prisma.group.findFirst({
+      where: {
+        name: "All",
+        organizationId,
+      },
+    });
+    if (allGroup) {
+      await prisma.group.update({
+        where: { id: allGroup.id },
+        data: { students: { connect: processedStudents.map(student => ({ id: student.id })) } },
+      });
+    }
+
     return NextResponse.json(processedStudents, { status: 200 });
   } catch (error) {
     console.error(error);

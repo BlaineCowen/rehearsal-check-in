@@ -4,17 +4,24 @@ import { auth } from "@/auth";
 import { put } from "@vercel/blob";
 
 export async function PUT(
-  req: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    // Test blob upload
+    const { url } = await put('test/blob.txt', 'Hello World!', { 
+      access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    console.log("Test blob URL:", url);
     const { id } = await context.params;
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await req.formData();
+    const formData = await request.formData();
     const name = formData.get("name") as string;
     const image = formData.get("image") as File | null;
     const existingImageUrl = formData.get("imageUrl") as string | null;
@@ -22,12 +29,24 @@ export async function PUT(
     let imageUrl = existingImageUrl;
 
     if (image) {
-      // Generate a unique filename
       const filename = `org-${id}-${Date.now()}-${image.name}`;
       const blob = await put(filename, image, {
-        access: 'public',
+        access: "public",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
       });
       imageUrl = blob.url;
+    }
+
+    // Verify user has access to this organization
+    const userOrg = await prisma.organization.findFirst({
+      where: {
+        id: id,
+        userId: session.user.id,
+      },
+    });
+
+    if (!userOrg) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const organization = await prisma.organization.update({
@@ -43,7 +62,10 @@ export async function PUT(
     return NextResponse.json(organization);
   } catch (error) {
     console.error("Failed to update organization:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 

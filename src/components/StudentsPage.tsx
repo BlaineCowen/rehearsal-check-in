@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { redirect, useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Define your columns with proper typing
 const columns: ColumnDef<Student>[] = [
@@ -42,6 +43,7 @@ export default function StudentsPage() {
   const { data: user, isLoading } = useUser();
   const [currentData, setCurrentData] = useState<Student[]>([]);
   const router = useRouter();
+  const queryClient = useQueryClient();
   useEffect(() => {
     if (user?.organizations[0]?.students) {
       setCurrentData(user.organizations[0].students);
@@ -82,6 +84,8 @@ export default function StudentsPage() {
     if (data.error) {
       console.error(data.error);
     } else {
+      // refresh the user query
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
       // redirect to /
       router.push("/");
     }
@@ -96,12 +100,13 @@ export default function StudentsPage() {
       <EditableDataTable<Student>
         initialData={currentData}
         columns={columns}
+        organizationId={organizationId}
         onRowUpdate={handleRowUpdate}
         onRowDelete={handleRowDelete}
         onDataChange={handleDataChange}
       />
 
-      <Button onClick={() => updateStudentsPrisma(currentData)}>
+      <Button color="primary" onClick={() => updateStudentsPrisma(currentData)}>
         Update Students
       </Button>
     </main>

@@ -202,7 +202,7 @@ export default function SelectableStudentTable({
                   key={row.id}
                   className={
                     selectedMap[row.original.id]
-                      ? "bg-slate-100 text-slate-900"
+                      ? "bg-accent text-accent-content"
                       : ""
                   }
                 >

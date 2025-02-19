@@ -54,6 +54,7 @@ export default function CreateRehearsalForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          organizationId: user?.organizations[0].id,
           groupIds: selectedGroups,
           date: new Date(),
         }),
@@ -76,13 +77,13 @@ export default function CreateRehearsalForm() {
         <Button
           onClick={handleSelectAll}
           variant="outline"
-          className="text-blue-500 border-blue-500 hover:bg-blue-50"
+          className="text-primary border-primary hover:bg-primary/10"
         >
           {selectedGroups.length === groups.length
             ? "Deselect All"
             : "Select All"}
         </Button>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-primary-content">
           {selectedGroups.length} of {groups.length} groups selected
         </span>
       </div>
@@ -93,8 +94,8 @@ export default function CreateRehearsalForm() {
             key={group.id}
             className={`cursor-pointer transition-colors ${
               selectedGroups.includes(group.id)
-                ? "bg-slate-100 border-blue-500 border-2"
-                : "hover:bg-slate-50"
+                ? "bg-base-300 border-primary border-2"
+                : "hover:bg-base-300/50"
             }`}
             onClick={() => handleGroupToggle(group.id)}
           >

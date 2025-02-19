@@ -18,7 +18,7 @@ export function SignIn() {
         signInWithGoogle();
       }}
       disabled={isLoading}
-      className="w-full max-w-sm bg-white text-black flex items-center gap-2"
+      className="btn w-full max-w-sm bg-white text-black flex items-center gap-2"
     >
       {isLoading ? (
         <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-gray-900" />
