@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createOrganization } from "@/app/actions";
 import { useState } from "react";
 import { useUser } from "@/hooks/useUser";
+import { toast } from "sonner";
 
 export default function CreateOrganization() {
   const router = useRouter();
@@ -20,6 +21,11 @@ export default function CreateOrganization() {
       await refetch();
       router.push("/");
     } catch (err: any) {
+      if (err.message.includes("already has an organization")) {
+        toast.success("Organization created successfully");
+        router.push("/");
+        return;
+      }
       setError(err.message);
     }
   };

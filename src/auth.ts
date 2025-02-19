@@ -4,15 +4,26 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
   adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: "database",
   },
+  pages: {
+    signIn: '/auth',
+  },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Always redirect to home after sign in
-      return baseUrl;
+      // Allow relative URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Allow URLs from same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
     },
     async session({ session, user }) {
       const userWithOrg = await prisma.user.findUnique({

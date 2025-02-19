@@ -14,15 +14,17 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="h-screen flex items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardDescription>
+            Enter your email below to create your account
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -37,14 +39,14 @@ export default function SignInPage() {
           <Button
             className="w-full"
             disabled={isLoading}
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={() => signIn("google", { callbackUrl: "/register" })}
           >
             Continue with Google
           </Button>
           <div className="text-sm text-muted-foreground text-center">
-            Don't have an account?{" "}
-            <Link href="/auth/signup" className="text-primary hover:underline">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/auth/signin" className="text-primary hover:underline">
+              Sign in
             </Link>
           </div>
         </CardContent>
