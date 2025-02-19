@@ -10,6 +10,7 @@ import {
   type ColumnFiltersState,
   getFilteredRowModel,
   ColumnDef,
+  RowData,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -34,6 +35,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQueryClient } from "@tanstack/react-query";
+
+declare module "@tanstack/table-core" {
+  interface TableMeta<TData extends RowData> {
+    updateData: (rowIndex: number, columnId: string, value: string) => void;
+  }
+}
 
 interface EditableDataTableProps<TData> {
   initialData: TData[];
@@ -69,6 +76,21 @@ export default function EditableDataTable<TData extends { id: string }>({
   const [selectedRows, setSelectedRows] = useState<TData[]>([]);
   const queryClient = useQueryClient();
 
+  // Add state for cell being edited
+  const [editingCell, setEditingCell] = useState<{
+    id: string;
+    key: string;
+  } | null>(null);
+
+  // Add state for tracking the next cell to edit
+  const [nextCellToEdit, setNextCellToEdit] = useState<{
+    id: string;
+    key: string;
+  } | null>(null);
+
+  // Add state for tracking cell selection
+  const [isSelectingCell, setIsSelectingCell] = useState(false);
+
   useEffect(() => {
     setData(initialData || []);
   }, [initialData]);
@@ -78,7 +100,9 @@ export default function EditableDataTable<TData extends { id: string }>({
     header: ({ table }) => (
       <div className="w-[40px] px-2">
         <Checkbox
-          checked={selectedRows.length === data.length}
+          checked={
+            selectedRows.length > 0 && selectedRows.length === data.length
+          }
           onCheckedChange={(value) => {
             const newSelection = value ? [...data] : [];
             setSelectedRows(newSelection);
@@ -108,7 +132,98 @@ export default function EditableDataTable<TData extends { id: string }>({
     maxSize: 40,
   };
 
-  const allColumns = [selectionColumn, ...columns];
+  // Update the EditableCell component
+  const EditableCell = ({ row, column }: { row: any; column: any }) => {
+    const value = row.getValue(column.id);
+    const isEditing =
+      editingCell?.id === row.id && editingCell?.key === column.id;
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (isEditing) {
+        requestAnimationFrame(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+            const len = inputRef.current.value.length;
+            inputRef.current.setSelectionRange(len, len);
+          }
+        });
+      }
+    }, [isEditing]);
+
+    if (isEditing) {
+      return (
+        <Input
+          ref={inputRef}
+          defaultValue={value}
+          className="h-12 m-0"
+          onChange={(e) => {
+            table.options.meta?.updateData(
+              row.index,
+              column.id,
+              e.target.value
+            );
+          }}
+          onBlur={(e) => {
+            if (!isSelectingCell) {
+              setEditingCell(null);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "Escape") {
+              setEditingCell(null);
+            }
+          }}
+        />
+      );
+    }
+
+    return (
+      <div
+        role="cell"
+        data-cell-id={`${row.id}-${column.id}`}
+        className="min-h-[48px] flex items-center cursor-text px-4 py-2 
+          hover:bg-accent hover:text-accent-foreground rounded border border-transparent 
+          hover:border-input hover:shadow-sm transition-all group relative"
+        onMouseDown={() => {
+          setIsSelectingCell(true);
+          if (editingCell) {
+            // If we're already editing a cell, prepare for the next one
+            setNextCellToEdit({
+              id: row.id,
+              key: column.id,
+            });
+          } else {
+            // If we're not editing, start editing this cell
+            setEditingCell({
+              id: row.id,
+              key: column.id,
+            });
+          }
+        }}
+        onMouseUp={() => {
+          setIsSelectingCell(false);
+          if (nextCellToEdit) {
+            setEditingCell(nextCellToEdit);
+            setNextCellToEdit(null);
+          }
+        }}
+      >
+        <span>{value}</span>
+        <div className="absolute inset-y-0 right-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-xs text-muted-foreground">Click to edit</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Update your columns to use the EditableCell
+  const columnsWithEditing = columns.map((col) => ({
+    ...col,
+    cell: (props: any) => <EditableCell {...props} />,
+  }));
+
+  const allColumns = [selectionColumn, ...columnsWithEditing];
 
   const table = useReactTable({
     data: data || [],
@@ -127,19 +242,19 @@ export default function EditableDataTable<TData extends { id: string }>({
     },
     meta: {
       updateData: (rowIndex: number, columnId: string, value: string) => {
-        setData((old) => {
-          const updatedData = old || [];
-          return updatedData.map((row, index) => {
+        setData((prev) => {
+          const newData = prev.map((row, index) => {
             if (index === rowIndex) {
-              onDataChange(updatedData);
-              return {
-                ...updatedData[rowIndex],
+              const updatedRow = {
+                ...row,
                 [columnId]: value,
               };
+              return updatedRow;
             }
-            onDataChange(updatedData);
             return row;
           });
+          onDataChange(newData);
+          return newData;
         });
       },
     },
@@ -196,17 +311,27 @@ export default function EditableDataTable<TData extends { id: string }>({
     const newData = rows
       .filter((row) => row.trim().length > 0)
       .map((row) => {
-        const [firstName, lastName, studentId] = row
-          .split("\t")
-          .map((cell) => cell.trim());
+        // Split by tab and trim each cell
+        const cells = row.split("\t").map((cell) => cell.trim());
 
-        if (!studentId || !firstName || !lastName) return null;
+        // Get column order from the table
+        const columnOrder = columns
+          // @ts-ignore
+          .map((col) => col.accessorKey as string)
+          .filter(Boolean);
+
+        // Create an object with the correct order
+        const rowData: any = {};
+        columnOrder.forEach((key, index) => {
+          rowData[key] = cells[index] || "";
+        });
+
+        if (!rowData.studentId || !rowData.firstName || !rowData.lastName)
+          return null;
 
         return {
           id: crypto.randomUUID(),
-          studentId,
-          firstName,
-          lastName,
+          ...rowData,
           grade: null,
         } as unknown as TData;
       })
@@ -246,24 +371,51 @@ export default function EditableDataTable<TData extends { id: string }>({
     }
   };
 
+  const handleUpdate = async (rows: TData[]) => {
+    try {
+      await fetch("/api/students/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          students: rows,
+          organizationId,
+        }),
+      });
+
+      // Invalidate queries
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+
+      toast({
+        title: "Success",
+        description: "Students updated successfully",
+      });
+
+      setSelectedRows([]);
+    } catch (error) {
+      console.error("Failed to update students:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update students",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold text-base-content mb-4">
-        Add/Delete Students
-      </h1>
-      <h2>Copy and paste as multiple students into the bottom row</h2>
-      <div className="flex items-center justify-between py-4">
-        <Input
-          placeholder="Search..."
-          value={globalFilter ?? ""}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="w-1/2"
-        />
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Manage Students</h1>
         {selectedRows.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-base-content">
               {selectedRows.length} selected
             </span>
+            <Button
+              variant="default"
+              onClick={() => handleUpdate(selectedRows)}
+            >
+              Update Selected
+            </Button>
             <Button
               variant="destructive"
               onClick={() => handleDelete(selectedRows)}
@@ -272,6 +424,17 @@ export default function EditableDataTable<TData extends { id: string }>({
             </Button>
           </div>
         )}
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Add students individually or paste multiple students from a spreadsheet
+      </p>
+      <div className="flex items-center justify-between py-4">
+        <Input
+          placeholder="Search..."
+          value={globalFilter ?? ""}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="w-1/2"
+        />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -300,7 +463,7 @@ export default function EditableDataTable<TData extends { id: string }>({
                   className={!isRowComplete(row.original) ? "bg-red-100" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-base-content">
+                    <TableCell key={cell.id} className="text-base-content p-0">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -347,36 +510,5 @@ export default function EditableDataTable<TData extends { id: string }>({
         <Toaster />
       </div>
     </div>
-  );
-}
-
-function EditableCell({
-  getValue,
-  row: { index },
-  column: { id },
-  table,
-}: {
-  getValue: () => any;
-  row: { index: number };
-  column: { id: string };
-  table: any;
-}) {
-  const initialValue = getValue();
-  const [value, setValue] = useState(initialValue);
-
-  const onBlur = () => {
-    table.options.meta?.updateData(index, id, value);
-  };
-
-  React.useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  return (
-    <Input
-      value={value as string}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={onBlur}
-    />
   );
 }

@@ -3,28 +3,11 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import RehearsalAttendance from "@/components/RehearsalAttendance";
-
-export default async function RehearsalViewPage(
-  props: {
-    params: Promise<{ rehearsalId: string }>;
-  }
-) {
+import { useUser } from "@/hooks/useUser";
+export default async function RehearsalViewPage(props: {
+  params: Promise<{ rehearsalId: string }>;
+}) {
   const params = await props.params;
-  const rehearsal = await prisma.rehearsal.findUnique({
-    where: { id: params.rehearsalId },
-    include: {
-      organization: true,
-      groups: {
-        include: {
-          students: true,
-        },
-      },
-    },
-  });
-
-  if (!rehearsal) {
-    notFound();
-  }
 
   return (
     <div className="p-8 max-w-6xl mx-auto">

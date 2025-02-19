@@ -22,7 +22,7 @@ export default function RehearsalCard({ rehearsal }: { rehearsal: Rehearsal }) {
       </p>
       <div className="flex gap-2">
         <Link
-          href={`/attendance/${rehearsal.id}`}
+          href={`/rehearsals/view/${rehearsal.id}`}
           className="inline-block py-2 px-4 bg-primary text-primary-content rounded-lg hover:bg-primary/80 transition-colors"
         >
           View

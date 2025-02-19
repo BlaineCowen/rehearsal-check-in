@@ -19,10 +19,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
 type Student = {
   id: string;
   firstName: string;
@@ -38,6 +39,12 @@ type AttendanceRecord = {
 type AbsentRecord = {
   student: Student;
   status: "absent";
+};
+
+type CombinedRecord = {
+  student: Student;
+  status: "present" | "absent";
+  checkInTime?: string;
 };
 
 type AttendanceData = {
@@ -72,37 +79,7 @@ export default function RehearsalAttendance({
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const presentColumns: ColumnDef<AttendanceRecord>[] = [
-    {
-      accessorKey: "student.studentId",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Student ID</SortableHeader>
-      ),
-    },
-    {
-      accessorKey: "student.lastName",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Name</SortableHeader>
-      ),
-      cell: ({ row }) =>
-        `${row.original.student.firstName} ${row.original.student.lastName}`,
-    },
-    {
-      accessorKey: "checkInTime",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Check-in Time</SortableHeader>
-      ),
-      cell: ({ row }) => formatDate(new Date(row.original.checkInTime)),
-      sortingFn: (a, b) => {
-        return (
-          new Date(a.original.checkInTime).getTime() -
-          new Date(b.original.checkInTime).getTime()
-        );
-      },
-    },
-  ];
-
-  const absentColumns: ColumnDef<AbsentRecord>[] = [
+  const columns: ColumnDef<CombinedRecord>[] = [
     {
       accessorKey: "student.studentId",
       header: ({ column }) => (
@@ -119,8 +96,30 @@ export default function RehearsalAttendance({
     },
     {
       accessorKey: "status",
-      header: "Status",
-      cell: () => <span className="text-red-500">Absent</span>,
+      header: ({ column }) => (
+        <SortableHeader column={column}>Status</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <span
+          className={
+            row.original.status === "present"
+              ? "text-green-500 font-medium"
+              : "text-red-500 font-medium"
+          }
+        >
+          {row.original.status === "present" ? "Present" : "Absent"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "checkInTime",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Check-in Time</SortableHeader>
+      ),
+      cell: ({ row }) =>
+        row.original.checkInTime
+          ? formatDate(new Date(row.original.checkInTime))
+          : "—",
     },
   ];
 
@@ -134,18 +133,27 @@ export default function RehearsalAttendance({
     refetchInterval: 5000,
   });
 
-  const presentTable = useReactTable({
-    data: data?.present || [],
-    columns: presentColumns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+  // Combine present and absent records
+  const combinedRecords: CombinedRecord[] = useMemo(() => {
+    if (!data) return [];
 
-  const absentTable = useReactTable({
-    data: data?.absent || [],
-    columns: absentColumns,
+    const presentRecords = data.present.map((record) => ({
+      student: record.student,
+      status: "present" as const,
+      checkInTime: record.checkInTime,
+    }));
+
+    const absentRecords = data.absent.map((record) => ({
+      student: record.student,
+      status: "absent" as const,
+    }));
+
+    return [...presentRecords, ...absentRecords];
+  }, [data]);
+
+  const table = useReactTable({
+    data: combinedRecords,
+    columns,
     state: { sorting },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -156,7 +164,6 @@ export default function RehearsalAttendance({
   if (!data) return <div>No data available</div>;
 
   const presentCount = data.present.length;
-  const absentCount = data.absent.length;
   const attendanceRate = ((presentCount / data.totalStudents) * 100).toFixed(1);
 
   return (
@@ -176,86 +183,37 @@ export default function RehearsalAttendance({
         </Button>
       </div>
 
-      <Tabs defaultValue="present" className="w-full">
-        <TabsList>
-          <TabsTrigger value="present">Present ({presentCount})</TabsTrigger>
-          <TabsTrigger value="absent">Absent ({absentCount})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="present">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {presentTable.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {presentTable.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
                         )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  </TableHead>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="absent">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {absentTable.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
                 ))}
-              </TableHeader>
-              <TableBody>
-                {absentTable.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-      </Tabs>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

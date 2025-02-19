@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Student } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import EditableDataTable from "@/components/ui/editable-datatable";
 import ImportStudents from "@/components/ImportStudents";
+import { Toaster } from "@/components/ui/toaster";
+import { toast } from "@/hooks/use-toast";
 
 import {
   Table,
@@ -19,23 +21,45 @@ import { Button } from "@/components/ui/button";
 import { redirect, useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
 import { useQueryClient } from "@tanstack/react-query";
+import { ArrowUpDown } from "lucide-react";
 
 // Define your columns with proper typing
 const columns: ColumnDef<Student>[] = [
   {
-    accessorKey: "firstName",
-    header: "First Name",
-    cell: ({ row }) => <span>{row.original.firstName}</span>,
+    accessorKey: "studentId" as keyof Student,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Student ID
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
-    accessorKey: "lastName",
-    header: "Last Name",
-    cell: ({ row }) => <span>{row.original.lastName}</span>,
+    accessorKey: "firstName" as keyof Student,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        First Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
-    accessorKey: "studentId",
-    header: "Student ID",
-    cell: ({ row }) => <span>{row.original.studentId}</span>,
+    accessorKey: "lastName" as keyof Student,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Last Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
 ];
 
@@ -44,20 +68,24 @@ export default function StudentsPage() {
   const [currentData, setCurrentData] = useState<Student[]>([]);
   const router = useRouter();
   const queryClient = useQueryClient();
+
   useEffect(() => {
     if (user?.organizations[0]?.students) {
       setCurrentData(user.organizations[0].students);
     }
   }, [user]);
 
+  const handleDataChange = useCallback((newData: Student[]) => {
+    // Use requestAnimationFrame to defer the state update
+    requestAnimationFrame(() => {
+      setCurrentData(newData);
+    });
+  }, []);
+
   if (isLoading) return <div>Loading...</div>;
   if (!user?.organizations[0]) return null;
 
   const organizationId = user.organizations[0].id;
-
-  const handleDataChange = (newData: Student[]) => {
-    setCurrentData(newData);
-  };
 
   const handleRowUpdate = async (
     rowIndex: number,
@@ -76,6 +104,9 @@ export default function StudentsPage() {
   };
 
   const updateStudentsPrisma = async (students: Student[]) => {
+    toast({
+      title: "Updating students...",
+    });
     const response = await fetch("/api/students/update-students", {
       method: "POST",
       body: JSON.stringify({ students, organizationId }),
@@ -84,10 +115,11 @@ export default function StudentsPage() {
     if (data.error) {
       console.error(data.error);
     } else {
+      toast({
+        title: "Students updated",
+      });
       // refresh the user query
       await queryClient.invalidateQueries({ queryKey: ["user"] });
-      // redirect to /
-      router.push("/");
     }
   };
 
@@ -109,6 +141,7 @@ export default function StudentsPage() {
       <Button color="primary" onClick={() => updateStudentsPrisma(currentData)}>
         Update Students
       </Button>
+      <Toaster />
     </main>
   );
 }
