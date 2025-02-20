@@ -87,12 +87,18 @@ export default function RehearsalAttendance({
       ),
     },
     {
+      accessorKey: "student.firstName",
+      header: ({ column }) => (
+        <SortableHeader column={column}>First Name</SortableHeader>
+      ),
+      cell: ({ row }) => row.original.student.firstName,
+    },
+    {
       accessorKey: "student.lastName",
       header: ({ column }) => (
-        <SortableHeader column={column}>Name</SortableHeader>
+        <SortableHeader column={column}>Last Name</SortableHeader>
       ),
-      cell: ({ row }) =>
-        `${row.original.student.firstName} ${row.original.student.lastName}`,
+      cell: ({ row }) => row.original.student.lastName,
     },
     {
       accessorKey: "status",
@@ -179,7 +185,9 @@ export default function RehearsalAttendance({
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link href={`/attendance/${rehearsalId}`}>Go to Sign in Page</Link>
+          <Link target="_blank" href={`/attendance/${rehearsalId}`}>
+            Go to Sign in Page
+          </Link>
         </Button>
       </div>
 

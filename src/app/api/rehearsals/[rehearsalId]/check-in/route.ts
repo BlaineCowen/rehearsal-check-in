@@ -3,10 +3,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ rehearsalId: string }> }
+  { params }: { params: { rehearsalId: string } }
 ) {
   try {
-    const { studentId, rehearsalId, organizationId } = await req.json();
+    const { studentId, organizationId } = await req.json();
+    const { rehearsalId } = params;
 
     // Find the student and check if they're in any of the rehearsal's groups
     const student = await prisma.student.findFirst({

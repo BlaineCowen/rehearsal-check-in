@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { ImageIcon } from "lucide-react";
 
 type FormData = {
   name: string;
@@ -54,7 +55,6 @@ export default function UpdateOrgForm() {
       const blob = (await response.json()) as PutBlobResult;
       setValue("imageUrl", blob.url);
 
-      // Update organization with new image URL
       const formData = new FormData();
       formData.append("name", watch("name"));
       formData.append("imageUrl", blob.url);
@@ -67,14 +67,13 @@ export default function UpdateOrgForm() {
       if (!updateResponse.ok) throw new Error("Failed to update organization");
 
       toast({
-        title: "Success",
         description: "Logo uploaded successfully",
+        className: "bg-green-500 text-white",
       });
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Error",
         description: "Error uploading logo",
+        className: "bg-red-500 text-white",
       });
       console.error(error);
     } finally {
@@ -86,8 +85,6 @@ export default function UpdateOrgForm() {
     try {
       const formData = new FormData();
       formData.append("name", data.name);
-
-      // If there's an existing image URL, pass it along
       if (data.imageUrl) {
         formData.append("imageUrl", data.imageUrl);
       }
@@ -100,15 +97,14 @@ export default function UpdateOrgForm() {
       if (!response.ok) throw new Error("Failed to update organization");
 
       toast({
-        title: "Success",
         description: "Organization updated successfully",
+        className: "bg-green-500 text-white",
       });
       router.push("/");
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Error",
         description: "Error updating organization",
+        className: "bg-red-500 text-white",
       });
       console.error(error);
     }
@@ -126,8 +122,44 @@ export default function UpdateOrgForm() {
             <Input id="name" {...register("name", { required: true })} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="logo">Organization Logo</Label>
+          <div className="space-y-4">
+            <Label>Organization Logo</Label>
+
+            {currentImageUrl ? (
+              <div className="space-y-4">
+                <div className="relative w-40 h-40 mx-auto rounded-lg overflow-hidden border-2 border-gray-200">
+                  <Image
+                    src={currentImageUrl}
+                    alt="Organization logo"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <div className="flex justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? "Uploading..." : "Change Logo"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-4 p-8 border-2 border-dashed rounded-lg">
+                <ImageIcon className="w-8 h-8 text-gray-400" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? "Uploading..." : "Upload Logo"}
+                </Button>
+              </div>
+            )}
+
             <Input
               id="logo"
               type="file"
@@ -135,21 +167,11 @@ export default function UpdateOrgForm() {
               onChange={handleImageUpload}
               disabled={uploading}
               ref={fileInputRef}
+              className="hidden"
             />
           </div>
 
-          {currentImageUrl && (
-            <div className="relative w-32 h-32">
-              <Image
-                src={currentImageUrl}
-                alt="Organization logo"
-                fill
-                className="object-contain"
-              />
-            </div>
-          )}
-
-          <Button type="submit" disabled={uploading}>
+          <Button type="submit" disabled={uploading} className="w-full">
             {uploading ? "Uploading..." : "Update Organization"}
           </Button>
         </form>
