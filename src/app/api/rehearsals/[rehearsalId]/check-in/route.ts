@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+
 export async function POST(
   req: NextRequest,
-  { params }: { params: { rehearsalId: string } }
+  context: { params: Promise<{ rehearsalId: string }> }
 ) {
   try {
     const { studentId, organizationId } = await req.json();
+    const params = await context.params;
     const { rehearsalId } = params;
 
     // Find the student and check if they're in any of the rehearsal's groups
@@ -70,3 +72,4 @@ export async function POST(
     );
   }
 } 
+

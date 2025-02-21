@@ -19,7 +19,7 @@ function Navbar({ orgName }: { orgName: string }) {
 
   return (
     <div className={orgName}>
-      <div className="h-full bg-base-300 rounded-sm shadow-md">
+      <div className="h-full bg-base-100 rounded-sm shadow-md">
         <Toolbar>
           <Typography
             className="text-base-content"
@@ -35,7 +35,7 @@ function Navbar({ orgName }: { orgName: string }) {
             className="mx-2"
             onClick={() => handleButtonClick("")}
           >
-            <Link href={{ pathname: "../", query: { name: "" } }}>Home</Link>
+            <Link href={"/"}>Home</Link>
           </Button>
           <Button
             variant="outline"

@@ -23,6 +23,7 @@ import { useState, useMemo } from "react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import ReportsSkeleton from "./skeletons/ReportsSkeleton";
 
 type Student = {
   id: string;
@@ -41,11 +42,17 @@ type AbsentRecord = {
   status: "absent";
 };
 
-type CombinedRecord = {
-  student: Student;
-  status: "present" | "absent";
-  checkInTime?: string;
-};
+type CombinedRecord =
+  | {
+      student: Student;
+      status: "present";
+      checkInTime: string;
+    }
+  | {
+      student: Student;
+      status: "absent";
+      checkInTime?: never;
+    };
 
 type AttendanceData = {
   present: AttendanceRecord[];
@@ -72,64 +79,83 @@ function SortableHeader({
   );
 }
 
+// Format the time using Intl.DateTimeFormat
+const formatTime = (date: Date) => {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+};
+
 export default function RehearsalAttendance({
   rehearsalId,
 }: {
   rehearsalId: string;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [filter, setFilter] = useState<"all" | "present" | "absent">("all");
 
-  const columns: ColumnDef<CombinedRecord>[] = [
-    {
-      accessorKey: "student.studentId",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Student ID</SortableHeader>
-      ),
-    },
-    {
-      accessorKey: "student.firstName",
-      header: ({ column }) => (
-        <SortableHeader column={column}>First Name</SortableHeader>
-      ),
-      cell: ({ row }) => row.original.student.firstName,
-    },
-    {
-      accessorKey: "student.lastName",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Last Name</SortableHeader>
-      ),
-      cell: ({ row }) => row.original.student.lastName,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Status</SortableHeader>
-      ),
-      cell: ({ row }) => (
-        <span
-          className={
-            row.original.status === "present"
-              ? "text-green-500 font-medium"
-              : "text-red-500 font-medium"
-          }
-        >
-          {row.original.status === "present" ? "Present" : "Absent"}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "checkInTime",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Check-in Time</SortableHeader>
-      ),
-      cell: ({ row }) =>
-        row.original.checkInTime
-          ? formatDate(new Date(row.original.checkInTime))
-          : "—",
-    },
-  ];
+  const memoizedColumns = useMemo<ColumnDef<CombinedRecord>[]>(
+    () => [
+      {
+        accessorFn: (row) => row.student.studentId.toLowerCase(),
+        id: "studentId",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Student ID</SortableHeader>
+        ),
+        cell: ({ row }) => row.original.student.studentId,
+      },
+      {
+        accessorFn: (row) => row.student.firstName.toLowerCase(),
+        id: "firstName",
+        header: ({ column }) => (
+          <SortableHeader column={column}>First Name</SortableHeader>
+        ),
+        cell: ({ row }) => row.original.student.firstName,
+      },
+      {
+        accessorFn: (row) => row.student.lastName.toLowerCase(),
+        id: "lastName",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Last Name</SortableHeader>
+        ),
+        cell: ({ row }) => row.original.student.lastName,
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Status</SortableHeader>
+        ),
+        cell: ({ row }) => (
+          <span
+            className={
+              row.original.status === "present"
+                ? "text-green-500 font-medium"
+                : "text-red-500 font-medium"
+            }
+          >
+            {row.original.status === "present" ? "Present" : "Absent"}
+          </span>
+        ),
+      },
+      {
+        accessorFn: (row) =>
+          row.checkInTime ? new Date(row.checkInTime).getTime() : 0,
+        id: "checkInTime",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Check-in Time</SortableHeader>
+        ),
+        cell: ({ row }) =>
+          row.original.checkInTime
+            ? formatTime(new Date(row.original.checkInTime))
+            : "—",
+      },
+    ],
+    []
+  );
 
-  const { data, isLoading } = useQuery<AttendanceData>({
+  const { data, isPending } = useQuery<AttendanceData>({
     queryKey: ["attendance", rehearsalId],
     queryFn: async () => {
       const res = await fetch(`/api/rehearsals/${rehearsalId}/attendance`);
@@ -139,34 +165,37 @@ export default function RehearsalAttendance({
     refetchInterval: 5000,
   });
 
-  // Combine present and absent records
-  const combinedRecords: CombinedRecord[] = useMemo(() => {
+  const memoizedData = useMemo(() => {
     if (!data) return [];
-
-    const presentRecords = data.present.map((record) => ({
-      student: record.student,
-      status: "present" as const,
-      checkInTime: record.checkInTime,
-    }));
-
-    const absentRecords = data.absent.map((record) => ({
-      student: record.student,
-      status: "absent" as const,
-    }));
-
-    return [...presentRecords, ...absentRecords];
+    return [
+      ...data.present.map((record) => ({
+        student: record.student,
+        status: "present" as const,
+        checkInTime: record.checkInTime,
+      })),
+      ...data.absent.map((record) => ({
+        student: record.student,
+        status: "absent" as const,
+      })),
+    ] as CombinedRecord[];
   }, [data]);
 
   const table = useReactTable({
-    data: combinedRecords,
-    columns,
-    state: { sorting },
+    data:
+      filter === "all"
+        ? memoizedData
+        : memoizedData.filter((record) => record.status === filter),
+    columns: memoizedColumns,
+    state: {
+      sorting,
+    },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
-  if (isLoading) return <div>Loading attendance records...</div>;
+  if (isPending) return <ReportsSkeleton />;
+
   if (!data) return <div>No data available</div>;
 
   const presentCount = data.present.length;
@@ -191,36 +220,51 @@ export default function RehearsalAttendance({
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <select
+        value={filter}
+        onChange={(e) => setFilter(e.target.value as typeof filter)}
+        className="mb-4 p-2 border rounded"
+      >
+        <option value="all">All Students</option>
+        <option value="present">Present</option>
+        <option value="absent">Absent</option>
+      </select>
+
+      <div className="rounded-md border overflow-hidden">
+        <div className="overflow-x-auto max-h-[600px]">
+          <Table>
+            <TableHeader className="bg-base-100 sticky top-0  ">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

@@ -37,15 +37,27 @@ export default function AttendanceReport({
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Attendance Report</h1>
       <Tabs defaultValue="by-date" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="by-date">By Date Range</TabsTrigger>
-          <TabsTrigger value="by-rehearsal">By Rehearsal</TabsTrigger>
+        <TabsList className="rounded-lg">
+          <TabsTrigger
+            className="hover:bg-base-100 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            value="by-date"
+          >
+            By Date Range
+          </TabsTrigger>
+          <TabsTrigger
+            className="hover:bg-base-100 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            value="by-rehearsal"
+          >
+            By Rehearsal
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="by-date">
-          <AttendanceTableDate
-            rehearsals={data.rehearsals}
-            initialDate={initialDate}
-          />
+          <div className="rounded-md">
+            <AttendanceTableDate
+              rehearsals={data.rehearsals}
+              initialDate={initialDate}
+            />
+          </div>
         </TabsContent>
         <TabsContent value="by-rehearsal">
           <AttendanceByRehearsal rehearsals={data.rehearsals} />

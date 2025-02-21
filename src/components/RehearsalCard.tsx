@@ -23,7 +23,7 @@ export default function RehearsalCard({ rehearsal }: { rehearsal: Rehearsal }) {
       <div className="flex gap-2">
         <Link
           href={`/rehearsals/view/${rehearsal.id}`}
-          className="inline-block py-2 px-4 bg-primary text-primary-content rounded-lg hover:bg-primary/80 transition-colors"
+          className="flex-1 text-center py-2  bg-primary text-primary-content rounded-lg hover:bg-primary/80 transition-colors"
         >
           View
         </Link>

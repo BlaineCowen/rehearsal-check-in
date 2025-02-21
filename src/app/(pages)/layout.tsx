@@ -12,7 +12,7 @@ export default function PagesLayout({
   const { data: session } = useSession();
 
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="min-h-screen bg-base-300">
       <Navbar orgName={session?.user?.organization?.name || ""} />
       {children}
     </div>

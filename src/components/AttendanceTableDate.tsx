@@ -22,8 +22,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { mkConfig, generateCsv, download } from "export-to-csv";
 import {
   ColumnDef,
+  Row,
   SortingState,
   flexRender,
   getCoreRowModel,
@@ -44,6 +46,16 @@ type StudentAttendance = {
   attended: number;
   absent: number;
   attendanceRate: number;
+};
+
+type ExportRow = {
+  ID: string;
+  "First Name": string;
+  "Last Name": string;
+  Rehearsals: number;
+  Attended: number;
+  Absent: number;
+  "Attendance Rate": string;
 };
 
 function SortableHeader({
@@ -78,6 +90,28 @@ export default function AttendanceTableDate({
   const [date, setDate] = React.useState<DateRange>(initialDate);
   const [tempDate, setTempDate] = React.useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+
+  const csvConfig = mkConfig({
+    fieldSeparator: ",",
+    filename: `attendance-report-${format(new Date(), "yyyy-MM-dd")}`,
+    decimalSeparator: ".",
+    useKeysAsHeaders: true,
+  });
+
+  const exportExcel = (rows: Row<StudentAttendance>[]) => {
+    const rowData: ExportRow[] = rows.map((row) => ({
+      ID: row.original.student.studentId,
+      "First Name": row.original.student.firstName,
+      "Last Name": row.original.student.lastName,
+      Rehearsals: row.original.totalRehearsals,
+      Attended: row.original.attended,
+      Absent: row.original.absent,
+      "Attendance Rate": `${row.original.attendanceRate.toFixed(1)}%`,
+    }));
+
+    const csv = generateCsv(csvConfig)(rowData);
+    download(csvConfig)(csv);
+  };
 
   // Filter rehearsals based on selected date range
   const filteredRehearsals = React.useMemo(() => {
@@ -129,7 +163,7 @@ export default function AttendanceTableDate({
     {
       accessorKey: "student.studentId",
       header: ({ column }) => (
-        <SortableHeader column={column}>Student ID</SortableHeader>
+        <SortableHeader column={column}>ID</SortableHeader>
       ),
     },
     {
@@ -147,7 +181,7 @@ export default function AttendanceTableDate({
     {
       accessorKey: "totalRehearsals",
       header: ({ column }) => (
-        <SortableHeader column={column}>Total Rehearsals</SortableHeader>
+        <SortableHeader column={column}>Rehearsals</SortableHeader>
       ),
     },
     {
@@ -175,6 +209,11 @@ export default function AttendanceTableDate({
     data: attendanceStats,
     columns,
     state: { sorting },
+    // defaultColumn: {
+    //   size: 10,
+    //   maxSize: 10,
+    //   minSize: 10,
+    // },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -258,16 +297,26 @@ export default function AttendanceTableDate({
               </PopoverContent>
             </Popover>
           </div>
+          <Button
+            onClick={() => exportExcel(table.getRowModel().rows)}
+            variant="outline"
+            size="sm"
+          >
+            Export to CSV
+          </Button>
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="rounded-md border max-h-[600px] overflow-auto ">
+        <Table className="rounded-md mt-1">
+          <TableHeader className="bg-base-100 z-10 sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow className="border-b border-white" key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className="bg-base-300 border-b border-white z-10 sticky top-0"
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(

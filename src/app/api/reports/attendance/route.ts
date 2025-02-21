@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
         ...(from && to && {
           date: {
             gte: new Date(from),
-            lte: new Date(to),
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
           },
         }),
       },

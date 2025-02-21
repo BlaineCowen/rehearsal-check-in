@@ -183,7 +183,7 @@ export default function EditableDataTable<TData extends { id: string }>({
         role="cell"
         data-cell-id={`${row.id}-${column.id}`}
         className="min-h-[48px] flex items-center cursor-text px-4 py-2 
-          hover:bg-accent hover:text-accent-foreground rounded border border-transparent 
+          hover:bg-base-100 hover:text-base-content rounded border border-transparent 
           hover:border-input hover:shadow-sm transition-all group relative"
         onMouseDown={() => {
           setIsSelectingCell(true);
@@ -211,7 +211,7 @@ export default function EditableDataTable<TData extends { id: string }>({
       >
         <span>{value}</span>
         <div className="absolute inset-y-0 right-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-xs text-muted-foreground">Click to edit</span>
+          <span className="text-xs text-base-content">Click to edit</span>
         </div>
       </div>
     );
@@ -436,77 +436,82 @@ export default function EditableDataTable<TData extends { id: string }>({
           className="w-1/2"
         />
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody className="text-base-content">
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className={!isRowComplete(row.original) ? "bg-red-100" : ""}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-base-content p-0">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+      <div className="rounded-md border overflow-hidden">
+        <div className="overflow-auto max-h-[600px]">
+          <Table>
+            <TableHeader className="bg-base-100 z-10 sticky top-0">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow></TableRow>
-            )}
-            <TableRow
-              ref={blankRowRef}
-              onPaste={handlePaste}
-              className="bg-muted/50"
-            >
-              <TableCell className="w-[40px]" />
-              {columns.map((column: ColumnDef<TData>) => (
-                // @ts-ignore
-                <TableCell key={column.accessorKey as string}>
-                  <Input
-                    // @ts-ignore
-                    placeholder={`Enter ${column.accessorKey as string}`}
-                    value={
-                      (pendingRow[
-                        // @ts-ignore
-                        column.accessorKey as keyof TData
-                      ] as string) || ""
-                    }
-                    onChange={(e) =>
-                      handlePendingRowChange(
-                        // @ts-ignore
-                        column.accessorKey as keyof TData,
-                        e.target.value
-                      )
-                    }
-                    onKeyDown={handlePendingRowKeyDown}
-                  />
-                </TableCell>
               ))}
-            </TableRow>
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody className="text-base-content">
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={!isRowComplete(row.original) ? "bg-red-100" : ""}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="text-base-content p-0"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow></TableRow>
+              )}
+              <TableRow
+                ref={blankRowRef}
+                onPaste={handlePaste}
+                className="bg-muted/50"
+              >
+                <TableCell className="w-[40px]" />
+                {columns.map((column: ColumnDef<TData>) => (
+                  // @ts-ignore
+                  <TableCell key={column.accessorKey as string}>
+                    <Input
+                      // @ts-ignore
+                      placeholder={`Enter ${column.accessorKey as string}`}
+                      value={
+                        (pendingRow[
+                          // @ts-ignore
+                          column.accessorKey as keyof TData
+                        ] as string) || ""
+                      }
+                      onChange={(e) =>
+                        handlePendingRowChange(
+                          // @ts-ignore
+                          column.accessorKey as keyof TData,
+                          e.target.value
+                        )
+                      }
+                      onKeyDown={handlePendingRowKeyDown}
+                    />
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
         <Toaster />
       </div>
     </div>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 type RehearsalWithRelations = Rehearsal & {
   organization: Organization;
@@ -32,9 +33,10 @@ export default function CheckInForm({
   orgImage?: string | null;
 }) {
   const [studentId, setStudentId] = useState("");
-  const [message, setMessage] = useState<{
-    text: string;
-    type: "success" | "error";
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error" | "warning";
+    id: number;
   } | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,20 +58,21 @@ export default function CheckInForm({
     return map;
   }, [rehearsal.groups]);
 
-  // More reliable connection check
-  const checkConnection = async () => {
-    try {
-      await fetch(`/api/rehearsals/${rehearsal.id}/check-in/`, {
-        method: "HEAD",
-        cache: "no-cache",
-      });
-      setIsOnline(true);
-    } catch (error) {
-      setIsOnline(false);
-    }
-  };
-
+  // Move checkConnection inside useEffect to avoid dependency issues
   useEffect(() => {
+    // Define checkConnection inside the effect
+    const checkConnection = async () => {
+      try {
+        await fetch(`/api/rehearsals/${rehearsal.id}/check-in/`, {
+          method: "HEAD",
+          cache: "no-cache",
+        });
+        setIsOnline(true);
+      } catch (error) {
+        setIsOnline(false);
+      }
+    };
+
     // Initial check
     checkConnection();
 
@@ -100,13 +103,17 @@ export default function CheckInForm({
     if (lastScanRef.current === scannedId) return;
     lastScanRef.current = scannedId;
 
+    // Clear input immediately
+    setStudentId("");
+    inputRef.current?.focus();
+
     // Immediately show feedback if student exists
     const student = studentMap.get(scannedId);
     if (student) {
-      toast({
-        description: `Welcome, ${student.firstName} ${student.lastName}`,
-        className: toastClassNames.success,
-      });
+      showNotification(
+        `Welcome, ${student.firstName} ${student.lastName}`,
+        "success"
+      );
     }
 
     try {
@@ -122,45 +129,36 @@ export default function CheckInForm({
 
       const responseText = await response.text();
       if (!responseText) {
-        toast({
-          description: "No response from server",
-          className: toastClassNames.error,
-        });
+        showNotification("No response from server", "error");
         return;
       }
 
       const data = JSON.parse(responseText);
 
       if (data.message?.includes("already checked in")) {
-        toast({
-          description: data.message,
-          className: toastClassNames.warning,
-        });
+        showNotification(data.message, "warning");
         return;
       }
 
       if (!response.ok) {
-        toast({
-          description: data?.error || data?.message || "Failed to check in",
-          className: toastClassNames.error,
-        });
+        showNotification(
+          data?.error || data?.message || "Failed to check in",
+          "error"
+        );
         return;
       }
 
       if (!data?.student) {
-        toast({
-          description: "Invalid student data received",
-          className: toastClassNames.error,
-        });
+        showNotification("Invalid student data received", "error");
         return;
       }
 
       // Only show success toast if student wasn't in our cache
       if (!student) {
-        toast({
-          description: `Checked in ${data.student.firstName} ${data.student.lastName}`,
-          className: toastClassNames.success,
-        });
+        showNotification(
+          `Checked in ${data.student.firstName} ${data.student.lastName}`,
+          "success"
+        );
       }
 
       queryClient.invalidateQueries({
@@ -173,14 +171,11 @@ export default function CheckInForm({
         rehearsalId: rehearsal.id,
         organizationId: rehearsal.organizationId,
       });
-      toast({
-        description: error.message || "An unexpected error occurred",
-        className: toastClassNames.error,
-      });
+      showNotification(
+        error.message || "An unexpected error occurred",
+        "error"
+      );
     }
-
-    setStudentId("");
-    inputRef.current?.focus();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,11 +197,11 @@ export default function CheckInForm({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Handle Enter key
     if (e.key === "Enter") {
       e.preventDefault();
       if (studentId.trim()) {
         handleScan(studentId);
+        setStudentId(""); // Clear immediately on Enter
       }
     }
   };
@@ -215,7 +210,23 @@ export default function CheckInForm({
     e.preventDefault();
     if (studentId.trim()) {
       handleScan(studentId);
+      setStudentId(""); // Clear immediately on submit
     }
+  };
+
+  const showNotification = (
+    message: string,
+    type: "success" | "error" | "warning"
+  ) => {
+    setNotification({
+      message,
+      type,
+      id: Date.now(), // Used to force re-render for repeated messages
+    });
+    // Auto-hide after 2 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 2000);
   };
 
   if (!isOnline) {
@@ -233,32 +244,34 @@ export default function CheckInForm({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-neutral">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-base-300">
       {!isOnline && (
-        <div className="fixed top-0 left-0 right-0 p-4 bg-red-500 text-white text-center">
+        <div className="fixed top-0 left-0 right-0 p-4 bg-red-500 text-base-300-content text-center text-lg">
           You are currently offline. Check-ins will be queued until connection
           is restored.
         </div>
       )}
-      <div className="w-full max-w-md text-center pb-12">
+      <div className="w-full max-w-2xl text-center pb-12">
         {orgImage && (
-          <div className="mx-auto min-w-[200px] max-w-[400px] min-h-[200px] max-h-[400px] flex items-center justify-center">
+          <div className="mx-auto mb-8 min-w-[300px] max-w-[500px] min-h-[300px] max-h-[500px] flex items-center justify-center">
             <Image
               src={orgImage}
               alt={orgName}
-              width={400}
-              height={400}
+              width={500}
+              height={500}
               className="w-full h-full"
               priority
             />
           </div>
         )}
 
-        <h1 className="text-4xl font-bold mb-2">{orgName}</h1>
-        <h2 className="text-xl text-gray-600 mb-8">Rehearsal Check-in</h2>
+        <h1 className="text-5xl font-bold mb-4">{orgName}</h1>
+        <h2 className="text-2xl text-base-300-content mb-12">
+          Rehearsal Check-in
+        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex gap-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex gap-4">
             <Input
               ref={inputRef}
               type="text"
@@ -266,15 +279,33 @@ export default function CheckInForm({
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder="Scan or enter student ID"
-              className="text-lg h-12"
+              className="text-2xl h-16 bg-base-200 border-base-300-content flex-1 px-6 placeholder:text-2xl [&:not(:placeholder-shown)]:text-2xl"
               autoComplete="off"
             />
-            <Button type="submit">Check In</Button>
+            <Button className="text-xl h-16 px-8" type="submit">
+              Check In
+            </Button>
           </div>
         </form>
 
-        <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-8">
-          <Toaster />
+        <div className="h-20 mt-8">
+          {" "}
+          {/* Fixed height to prevent layout shift */}
+          {notification && (
+            <div
+              key={notification.id}
+              className={cn(
+                "px-6 py-4 rounded-lg text-white text-xl transition-all duration-300",
+                {
+                  "bg-green-500": notification.type === "success",
+                  "bg-red-500": notification.type === "error",
+                  "bg-yellow-500": notification.type === "warning",
+                }
+              )}
+            >
+              {notification.message}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -60,7 +60,7 @@ export default function EditGroup({ groupId }: { groupId: string }) {
   if (isPending || !students || !currentGroup) return <div>Loading...</div>;
 
   return (
-    <div className="p-4">
+    <div className="p-4 flex flex-col gap-4">
       <h1 className="text-2xl font-bold mb-4">Edit Group</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -79,15 +79,13 @@ export default function EditGroup({ groupId }: { groupId: string }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Students
           </label>
-          <div className="rounded-md border">
-            <SelectableStudentTable
-              students={students}
-              selectedStudents={formData.selectedStudents}
-              onSelectionChange={(selected) =>
-                setFormData((prev) => ({ ...prev, selectedStudents: selected }))
-              }
-            />
-          </div>
+          <SelectableStudentTable
+            students={students}
+            selectedStudents={formData.selectedStudents}
+            onSelectionChange={(selected) =>
+              setFormData((prev) => ({ ...prev, selectedStudents: selected }))
+            }
+          />
         </div>
 
         <button

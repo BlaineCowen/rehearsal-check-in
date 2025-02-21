@@ -6,7 +6,7 @@
 @layer base {
   
   main {
-    @apply bg-base-100 h-full;
+    @apply bg-base-300 h-full;
   }
 
   h1,
