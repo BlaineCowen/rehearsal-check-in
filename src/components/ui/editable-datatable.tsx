@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -56,6 +56,21 @@ interface EditableDataTableProps<TData> {
   organizationId: string;
 }
 
+function useSkipper() {
+  const shouldSkipRef = React.useRef(true);
+  const shouldSkip = shouldSkipRef.current;
+
+  const skip = React.useCallback(() => {
+    shouldSkipRef.current = false;
+  }, []);
+
+  React.useEffect(() => {
+    shouldSkipRef.current = true;
+  });
+
+  return [shouldSkip, skip] as const;
+}
+
 export default function EditableDataTable<TData extends { id: string }>({
   initialData,
   columns,
@@ -75,6 +90,7 @@ export default function EditableDataTable<TData extends { id: string }>({
   );
   const [selectedRows, setSelectedRows] = useState<TData[]>([]);
   const queryClient = useQueryClient();
+  const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
 
   // Add state for cell being edited
   const [editingCell, setEditingCell] = useState<{
@@ -95,168 +111,99 @@ export default function EditableDataTable<TData extends { id: string }>({
     setData(initialData || []);
   }, [initialData]);
 
-  const selectionColumn: ColumnDef<TData> = {
-    id: "select",
-    header: ({ table }) => (
-      <div className="w-[40px] px-2">
-        <Checkbox
-          checked={
-            selectedRows.length > 0 && selectedRows.length === data.length
-          }
-          onCheckedChange={(value) => {
-            const newSelection = value ? [...data] : [];
-            setSelectedRows(newSelection);
-            onSelectionChange?.(newSelection);
-          }}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="w-[40px] px-2">
-        <Checkbox
-          checked={selectedRows.some((r) => r.id === row.original.id)}
-          onCheckedChange={(checked) => {
-            const newSelection = checked
-              ? [...selectedRows, row.original]
-              : selectedRows.filter((r) => r.id !== row.original.id);
-            setSelectedRows(newSelection);
-            onSelectionChange?.(newSelection);
-          }}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    maxSize: 40,
-  };
+  const allColumns = useMemo(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <div className="w-[40px] px-2">
+            <Checkbox
+              checked={
+                selectedRows.length > 0 && selectedRows.length === data.length
+              }
+              onCheckedChange={(value) => {
+                const newSelection = value ? [...data] : [];
+                setSelectedRows(newSelection);
+                onSelectionChange?.(newSelection);
+              }}
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="w-[40px] px-2">
+            <Checkbox
+              checked={selectedRows.some((r) => r.id === row.original.id)}
+              onCheckedChange={(checked) => {
+                const newSelection = checked
+                  ? [...selectedRows, row.original]
+                  : selectedRows.filter((r) => r.id !== row.original.id);
+                setSelectedRows(newSelection);
+                onSelectionChange?.(newSelection);
+              }}
+            />
+          </div>
+        ),
+        enableSorting: false,
+        maxSize: 40,
+      },
+      ...columns,
+    ],
+    [columns, data.length, selectedRows, onSelectionChange]
+  );
 
-  // Update the EditableCell component
-  const EditableCell = ({ row, column }: { row: any; column: any }) => {
-    const value = row.getValue(column.id);
-    const isEditing =
-      editingCell?.id === row.id && editingCell?.key === column.id;
-    const inputRef = useRef<HTMLInputElement>(null);
+  const defaultColumn: Partial<ColumnDef<TData>> = {
+    cell: ({ getValue, row: { index }, column: { id }, table }) => {
+      const initialValue = getValue() as string;
+      const [value, setValue] = React.useState(initialValue);
 
-    useEffect(() => {
-      if (isEditing) {
-        requestAnimationFrame(() => {
-          if (inputRef.current) {
-            inputRef.current.focus();
-            const len = inputRef.current.value.length;
-            inputRef.current.setSelectionRange(len, len);
-          }
-        });
-      }
-    }, [isEditing]);
+      React.useEffect(() => {
+        setValue(initialValue);
+      }, [initialValue]);
 
-    if (isEditing) {
       return (
-        <Input
-          ref={inputRef}
-          defaultValue={value}
-          className="h-12 m-0"
-          onChange={(e) => {
-            table.options.meta?.updateData(
-              row.index,
-              column.id,
-              e.target.value
-            );
-          }}
-          onBlur={(e) => {
-            if (!isSelectingCell) {
-              setEditingCell(null);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === "Escape") {
-              setEditingCell(null);
-            }
-          }}
-        />
-      );
-    }
-
-    return (
-      <div
-        role="cell"
-        data-cell-id={`${row.id}-${column.id}`}
-        className="min-h-[48px] flex items-center cursor-text px-4 py-2 
-          hover:bg-base-100 hover:text-base-content rounded border border-transparent 
-          hover:border-input hover:shadow-sm transition-all group relative"
-        onMouseDown={() => {
-          setIsSelectingCell(true);
-          if (editingCell) {
-            // If we're already editing a cell, prepare for the next one
-            setNextCellToEdit({
-              id: row.id,
-              key: column.id,
-            });
-          } else {
-            // If we're not editing, start editing this cell
-            setEditingCell({
-              id: row.id,
-              key: column.id,
-            });
-          }
-        }}
-        onMouseUp={() => {
-          setIsSelectingCell(false);
-          if (nextCellToEdit) {
-            setEditingCell(nextCellToEdit);
-            setNextCellToEdit(null);
-          }
-        }}
-      >
-        <span>{value}</span>
-        <div className="absolute inset-y-0 right-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-xs text-base-content">Click to edit</span>
+        <div className="group relative flex items-center">
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={() => {
+              table.options.meta?.updateData(index, id, value);
+            }}
+            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4"
+          />
+          <span className="absolute right-2 text-2xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+            Click to edit
+          </span>
         </div>
-      </div>
-    );
+      );
+    },
   };
-
-  // Update your columns to use the EditableCell
-  const columnsWithEditing = columns.map((col) => ({
-    ...col,
-    cell: (props: any) => <EditableCell {...props} />,
-  }));
-
-  const allColumns = [selectionColumn, ...columnsWithEditing];
 
   const table = useReactTable({
-    data: data || [],
+    data,
     columns: allColumns,
+    defaultColumn,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
-
+    autoResetPageIndex,
+    meta: {
+      updateData: (rowIndex: number, columnId: string, value: string) => {
+        skipAutoResetPageIndex();
+        setData((old) =>
+          old.map((row, index) =>
+            index === rowIndex ? { ...row, [columnId]: value } : row
+          )
+        );
+        onDataChange(data);
+      },
+    },
     state: {
       sorting,
       globalFilter,
       columnFilters,
-    },
-    meta: {
-      updateData: (rowIndex: number, columnId: string, value: string) => {
-        setData((prev) => {
-          const newData = prev.map((row, index) => {
-            if (index === rowIndex) {
-              const updatedRow = {
-                ...row,
-                [columnId]: value,
-              };
-              return updatedRow;
-            }
-            return row;
-          });
-          onDataChange(newData);
-          return newData;
-        });
-      },
     },
   });
 
@@ -466,7 +413,7 @@ export default function EditableDataTable<TData extends { id: string }>({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="text-base-content p-0"
+                        className="text-base-content p-0 hover:bg-base-100"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -489,6 +436,7 @@ export default function EditableDataTable<TData extends { id: string }>({
                   // @ts-ignore
                   <TableCell key={column.accessorKey as string}>
                     <Input
+                      className="border-none"
                       // @ts-ignore
                       placeholder={`Enter ${column.accessorKey as string}`}
                       value={

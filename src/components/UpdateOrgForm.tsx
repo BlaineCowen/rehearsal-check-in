@@ -154,11 +154,12 @@ export default function UpdateOrgForm() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Update Organization</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="flex flex-col pt-24 items-center justify-center">
+        <h1 className="text-4xl font-bold text-center mb-12">
+          Organization Settings
+        </h1>
+
+        <div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">Organization Name</Label>
@@ -220,8 +221,8 @@ export default function UpdateOrgForm() {
               {uploading ? "Uploading..." : "Update Organization"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {selectedImage && (
         <ImageCropModal

@@ -142,7 +142,7 @@ export default function SelectableStudentTable({
   });
 
   return (
-    <div className="w-full space-y-4">
+    <div className="container mx-auto h-screen p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex w-full max-w-sm items-center space-x-2">
           <Input
@@ -152,7 +152,7 @@ export default function SelectableStudentTable({
             className="h-8 w-[200px]"
           />
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="pl-4 text-muted-foreground sm:text-sm text-xs">
           {selectedStudents.length} of {students.length} row(s) selected
         </div>
       </div>

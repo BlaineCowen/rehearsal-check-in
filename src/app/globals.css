@@ -1,10 +1,16 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark;
 };
 
+@theme {
+  --text-2xs: 0.625rem;
+}
+
 @layer base {
-  
+
   main {
     @apply bg-base-300 h-full;
   }
@@ -30,41 +36,10 @@
     @apply text-info-content;
   }
 
-  .rdp-root {
-    --rdp-accent-color: hsl(var(--p)); /* Change the accent color to indigo. */
-    --rdp-accent-background-color: #f0f0f0; /* Change the accent background color. */
-    /* Add more CSS variables here. */
-  }
-  
-  .rdp {
-    --rdp-cell-size: 40px; /* Size of date cells */
-    --rdp-accent-color: hsl(var(--p)); /* Primary color from DaisyUI */
-    --rdp-background-color: hsl(var(--p)); /* Base color */
-    --rdp-accent-color-dark: hsl(var(--pf)); /* Focused primary color */
-    --rdp-background-color-dark: hsl(var(--b2)); /* Secondary base color */
-    --rdp-outline: 2px solid var(--rdp-accent-color); /* Focus outline */
-    --rdp-outline-selected: 2px solid hsl(var(--p)); /* Selected date outline */
-    --rdp-selected-color: hsl(var(--pc)); /* Selected date text color */
-    margin: 1em;
-  }
+};
 
-  /* Style the calendar days */
-  .rdp-day_selected, 
-  .rdp-day_selected:focus-visible, 
-  .rdp-day_selected:hover {
-    color: hsl(var(--pc));
-    background-color: hsl(var(--p));
-  }
-
-  /* Style the range */
-  .rdp-day_range_middle {
-    color: hsl(var(--pc));
-    background-color: hsl(var(--p) / 0.5);
-  }
-
-  /* Style the current date */
-  .rdp-day_today {
-    color: hsl(var(--s));
-    background-color: hsl(var(--sc) / 0.1);
-  }
+.rdp-root {
+  --rdp-accent-color: indigo; /* Change the accent color to indigo. */
+  --rdp-accent-background-color: #f0f0f0; /* Change the accent background color. */
+  /* Add more CSS variables here. */
 }

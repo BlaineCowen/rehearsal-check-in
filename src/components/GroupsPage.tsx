@@ -30,7 +30,7 @@ export default function GroupsPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="pt-24 bg-base-300 h-screen p-8">
       <Button
         color="primary"
         onClick={() => {

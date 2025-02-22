@@ -111,15 +111,17 @@ model Rehearsal {
   createdBy      User         @relation("UserRehearsals", fields: [userId], references: [id])
   groups         Group[]
   organization   Organization @relation(fields: [organizationId], references: [id])
+  checkOut       Boolean      @default(false)
 }
 
 model Attendance {
   id          String    @id @default(uuid())
   studentId   String
   rehearsalId String
-  checkInTime DateTime  @default(now())
+  checkInTime DateTime?  @default(now())
   rehearsal   Rehearsal @relation(fields: [rehearsalId], references: [id])
   student     Student   @relation(fields: [studentId], references: [id])
+  checkOutTime DateTime?
 
   @@unique([studentId, rehearsalId])
 }

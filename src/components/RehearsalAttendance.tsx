@@ -202,14 +202,16 @@ export default function RehearsalAttendance({
   const attendanceRate = ((presentCount / data.totalStudents) * 100).toFixed(1);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Rehearsal Attendance</h1>
-        <div className="text-right">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col justify-between mt-24 text-center items-center">
+        <div className="flex-1 w-full mb-4">
+          <h1 className="text-3xl font-bold">Rehearsal Attendance</h1>
+        </div>
+        <div className="flex-wrap items-center gap-2">
           <p className="text-lg font-semibold">
             Present: {presentCount} / {data.totalStudents}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mb-4">
             Attendance Rate: {attendanceRate}%
           </p>
         </div>

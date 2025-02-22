@@ -1,6 +1,6 @@
 export default function GroupsSkeleton() {
   return (
-    <div className="p-8 animate-pulse">
+    <div className="p-8 pt-24 animate-pulse">
       <div className="h-10 w-32 bg-slate-700 rounded mb-6"></div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

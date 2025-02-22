@@ -75,16 +75,11 @@ export default function Dashboard() {
   const organization = user.organizations[0];
 
   return (
-    <main className="p-8 max-w-6xl mx-auto bg-nuetral-content">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">{organization.name} Dashboard</h1>
-
-        <Link
-          href={`/org/${organization.id}/update`}
-          className="border border-base-content px-4 py-2 rounded-md"
-        >
-          Organization Settings
-        </Link>
+    <main className="p-8 pt-24 max-w-6xl mx-auto bg-nuetral-content">
+      <div className="flex justify-center mb-8">
+        <h1 className="text-4xl text-center font-bold">
+          {organization.name} Dashboard
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -200,6 +195,7 @@ function DashboardCard({
       <p className={`text-bg-base-200-content mb-4`}>{description}</p>
       <Link
         href={href}
+        prefetch={true}
         className="inline-block w-full text-center py-2 px-4 bg-primary text-primary-content rounded-lg hover:bg-primary/80 transition-colors"
       >
         {buttonText}
@@ -207,6 +203,7 @@ function DashboardCard({
       {altButtonText && (
         <Link
           href={altHref || ""}
+          prefetch={true}
           className="inline-block w-full text-center py-2 px-4 bg-secondary text-secondary-content rounded-lg hover:bg-secondary/80 transition-colors"
         >
           {altButtonText}

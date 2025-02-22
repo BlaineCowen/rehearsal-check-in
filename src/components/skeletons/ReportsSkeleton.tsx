@@ -1,6 +1,6 @@
 export default function ReportsSkeleton() {
   return (
-    <div className="space-y-6 p-8 animate-pulse">
+    <div className="space-y-6 p-8 pt-24 animate-pulse">
       <div className="flex justify-between items-center">
         <div className="h-8 w-48 bg-slate-700 rounded"></div>
         <div className="h-10 w-64 bg-slate-700 rounded"></div>

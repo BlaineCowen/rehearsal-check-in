@@ -124,7 +124,7 @@ export default function StudentsPage() {
   };
 
   return (
-    <main className="p-8 max-w-6xl mx-auto">
+    <main className="p-8 max-w-6xl h-screen bg-base-300 mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Student Roster</h1>
       </div>

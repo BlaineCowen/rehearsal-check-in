@@ -3,7 +3,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { DateRange } from "react-day-picker";
+import { DateRange, getDefaultClassNames } from "react-day-picker";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { ArrowUpDown } from "lucide-react";
@@ -97,6 +97,8 @@ export default function AttendanceTableDate({
     decimalSeparator: ".",
     useKeysAsHeaders: true,
   });
+
+  const defaultClassNames = getDefaultClassNames();
 
   const exportExcel = (rows: Row<StudentAttendance>[]) => {
     const rowData: ExportRow[] = rows.map((row) => ({
@@ -220,102 +222,129 @@ export default function AttendanceTableDate({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <div className="grid gap-2">
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant="outline"
-                  className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "LLL dd, y")} -{" "}
-                        {format(date.to, "LLL dd, y")}
-                      </>
+            <div className="flex items-center gap-2">
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant="outline"
+                    className={cn(
+                      "flex-1 justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "MM/dd/yy")} -{" "}
+                          {format(date.to, "MM/dd/yy")}
+                        </>
+                      ) : (
+                        format(date.from, "MM/dd/yy")
+                      )
                     ) : (
-                      format(date.from, "LLL dd, y")
-                    )
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-slate-900" align="start">
-                <div className="flex flex-col">
-                  <DayPicker
-                    fixedWeeks
-                    mode="range"
-                    numberOfMonths={2}
-                    selected={tempDate}
-                    onSelect={(value) => {
-                      if (!value) {
-                        setTempDate(undefined);
-                        return;
-                      }
-                      setTempDate({
-                        from: value.from ? new Date(value.from) : undefined,
-                        to: value.to ? new Date(value.to) : undefined,
-                      });
-                    }}
-                  />
-                  <div className="flex items-center justify-end gap-2 p-3 border-t border-slate-700">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setTempDate(undefined);
-                      }}
-                    >
-                      Reset
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={!tempDate?.from}
-                      onClick={() => {
-                        if (tempDate?.from) {
-                          setDate({
-                            from: tempDate.from,
-                            to: tempDate.to,
-                          });
-                          setIsCalendarOpen(false);
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0 bg-slate-900 overflow-x-auto"
+                  align="start"
+                >
+                  <div className="flex flex-col">
+                    <DayPicker
+                      fixedWeeks
+                      mode="range"
+                      numberOfMonths={window.innerWidth > 768 ? 2 : 1}
+                      selected={tempDate}
+                      onSelect={(value) => {
+                        if (!value) {
+                          setTempDate(undefined);
+                          return;
                         }
+                        setTempDate({
+                          from: value.from ? new Date(value.from) : undefined,
+                          to: value.to ? new Date(value.to) : undefined,
+                        });
                       }}
-                    >
-                      Apply
-                    </Button>
+                      className="sm:p-4 p-2 bg-base-300"
+                      classNames={{
+                        months: "sm:space-x-4 space-x-2",
+                        caption: "text-sm sm:text-base",
+                        head_cell: "text-xs sm:text-sm",
+                        cell: "text-sm sm:text-base w-8 sm:w-10 h-8 sm:h-10",
+                        day: "h-8 w-8 sm:h-10 sm:w-10",
+                        nav_button: "text-primary hover:text-primary-focus",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        selected:
+                          "bg-primary text-primary-content hover:bg-primary-focus",
+                        day_today: "text-accent font-bold",
+                        day_range_middle: "bg-primary/20",
+                        day_range_end: "bg-primary text-primary-content",
+                        day_range_start: "bg-primary text-primary-content",
+                        root: `${defaultClassNames.root} bg-base-300`,
+                      }}
+                    />
+                    <div className="flex items-center justify-end gap-2 p-3 border-t border-slate-700">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setTempDate(undefined);
+                        }}
+                      >
+                        Reset
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={!tempDate?.from}
+                        onClick={() => {
+                          if (tempDate?.from) {
+                            setDate({
+                              from: tempDate.from,
+                              to: tempDate.to,
+                            });
+                            setIsCalendarOpen(false);
+                          }
+                        }}
+                      >
+                        Apply
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Button
+              onClick={() => exportExcel(table.getRowModel().rows)}
+              variant="outline"
+              size="sm"
+              className="w-fit"
+            >
+              Export to CSV
+            </Button>
           </div>
-          <Button
-            onClick={() => exportExcel(table.getRowModel().rows)}
-            variant="outline"
-            size="sm"
-          >
-            Export to CSV
-          </Button>
         </div>
       </div>
 
-      <div className="rounded-md border max-h-[600px] overflow-auto ">
-        <Table className="rounded-md mt-1">
+      <div className="rounded-md border max-h-[600px] overflow-x-auto">
+        <Table className="w-full min-w-max">
           <TableHeader className="bg-base-100 z-10 sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="border-b border-white" key={headerGroup.id}>
+              <TableRow
+                className="border-b border-white bg-base-100 z-10 sticky top-0"
+                key={headerGroup.id}
+              >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="bg-base-300 border-b border-white z-10 sticky top-0"
+                    className="bg-base-100 border-b border-white z-10 sticky top-0 whitespace-nowrap"
                   >
                     {header.isPlaceholder
                       ? null

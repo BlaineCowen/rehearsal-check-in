@@ -25,9 +25,9 @@ export default async function RootLayout({
         <meta name="description" content="Attendance" />
         <link rel="icon" href="/logo.ico" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-base-300`}>
         <Providers session={session}>
-          <main className="h-screen bg-nuetral">{children}</main>
+          <main className="h-screen">{children}</main>
         </Providers>
       </body>
     </html>

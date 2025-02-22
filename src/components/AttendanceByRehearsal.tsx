@@ -141,54 +141,56 @@ export default function AttendanceByRehearsal({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="w-[300px]">
-          <Select
-            value={selectedRehearsalId}
-            onValueChange={setSelectedRehearsalId}
-          >
-            <SelectTrigger className="">
-              <SelectValue placeholder="Select a rehearsal" />
-            </SelectTrigger>
-            <SelectContent className="bg-base-300">
-              {rehearsals.map((rehearsal) => (
-                <SelectItem
-                  className="hover:text-accent-content"
-                  key={rehearsal.id}
-                  value={rehearsal.id}
-                >
-                  {format(new Date(rehearsal.date), "MM/dd")} –{" "}
-                  {rehearsal.groups.map((g) => g.name).join(", ")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {selectedRehearsalId && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => exportToCsv(attendanceRows)}
+          <div className="flex items-left mb-2 gap-2">
+            <Select
+              value={selectedRehearsalId}
+              onValueChange={setSelectedRehearsalId}
             >
-              Export to CSV
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Rehearsal
-            </Button>
+              <SelectTrigger className="">
+                <SelectValue placeholder="Select a rehearsal" />
+              </SelectTrigger>
+              <SelectContent className="bg-base-300">
+                {rehearsals.map((rehearsal) => (
+                  <SelectItem
+                    className="hover:text-accent-content"
+                    key={rehearsal.id}
+                    value={rehearsal.id}
+                  >
+                    {format(new Date(rehearsal.date), "MM/dd")} –{" "}
+                    {rehearsal.groups.map((g) => g.name).join(", ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+
+          {selectedRehearsalId && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportToCsv(attendanceRows)}
+              >
+                Export to CSV
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDelete}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Rehearsal
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedRehearsal && (
         <div className="rounded-md border max-h-[600px] overflow-auto">
           <Table className="rounded-md">
-            <TableHeader className="bg-base-100 rounded-md">
+            <TableHeader className="bg-base-100 rounded-md sticky top-0">
               <TableRow className="rounded-md">
                 <TableHead>Student ID</TableHead>
                 <TableHead>First Name</TableHead>
