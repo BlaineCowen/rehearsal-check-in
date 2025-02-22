@@ -3,7 +3,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { DateRange, getDefaultClassNames } from "react-day-picker";
+import { DateRange } from "react-day-picker";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { ArrowUpDown } from "lucide-react";
@@ -97,8 +97,6 @@ export default function AttendanceTableDate({
     decimalSeparator: ".",
     useKeysAsHeaders: true,
   });
-
-  const defaultClassNames = getDefaultClassNames();
 
   const exportExcel = (rows: Row<StudentAttendance>[]) => {
     const rowData: ExportRow[] = rows.map((row) => ({
@@ -288,7 +286,7 @@ export default function AttendanceTableDate({
                         day_range_middle: "bg-primary/20",
                         day_range_end: "bg-primary text-primary-content",
                         day_range_start: "bg-primary text-primary-content",
-                        root: `${defaultClassNames.root} bg-base-300`,
+                        root: "bg-base-300",
                       }}
                     />
                     <div className="flex items-center justify-end gap-2 p-3 border-t border-slate-700">

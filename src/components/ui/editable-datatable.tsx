@@ -148,33 +148,37 @@ export default function EditableDataTable<TData extends { id: string }>({
       },
       ...columns,
     ],
-    [columns, data.length, selectedRows, onSelectionChange]
+    [columns, data.length, selectedRows, onSelectionChange, data]
   );
 
   const defaultColumn: Partial<ColumnDef<TData>> = {
     cell: ({ getValue, row: { index }, column: { id }, table }) => {
-      const initialValue = getValue() as string;
-      const [value, setValue] = React.useState(initialValue);
+      const EditableCell = () => {
+        const initialValue = getValue() as string;
+        const [value, setValue] = React.useState(initialValue);
 
-      React.useEffect(() => {
-        setValue(initialValue);
-      }, [initialValue]);
+        React.useEffect(() => {
+          setValue(initialValue);
+        }, [initialValue]);
 
-      return (
-        <div className="group relative flex items-center">
-          <Input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => {
-              table.options.meta?.updateData(index, id, value);
-            }}
-            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4"
-          />
-          <span className="absolute right-2 text-2xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-            Click to edit
-          </span>
-        </div>
-      );
+        return (
+          <div className="group relative flex items-center">
+            <Input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onBlur={() => {
+                table.options.meta?.updateData(index, id, value);
+              }}
+              className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-4"
+            />
+            <span className="absolute right-2 text-2xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+              Click to edit
+            </span>
+          </div>
+        );
+      };
+
+      return <EditableCell />;
     },
   };
 
